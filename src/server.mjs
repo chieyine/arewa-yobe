@@ -624,7 +624,11 @@ export async function handleRequest(req, res) {
     "camera=(self), geolocation=(self), microphone=()",
   );
   try {
-    const u = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+    const rawUrl =
+      req.headers["x-forwarded-url"] ||
+      req.headers["x-matched-path"] ||
+      req.url;
+    const u = new URL(rawUrl, `http://${req.headers.host || "localhost"}`);
     if (u.pathname.startsWith("/api/")) return await api(req, res, u);
     if (u.pathname.startsWith("/evidence/")) {
       const id = u.pathname.split("/").pop();
