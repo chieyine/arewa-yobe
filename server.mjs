@@ -199,8 +199,18 @@ async function api(req, res, url) {
         message: "Use a JSON request.",
       });
     if (p === "/api/health") {
-      await pool.query("select 1");
-      return send(res, 200, { status: "ok", database: "PostgreSQL", mode });
+      try {
+        await pool.query("select 1");
+        return send(res, 200, { status: "ok", database: "PostgreSQL", mode });
+      } catch (err) {
+        return send(res, 500, {
+          status: "database_error",
+          error: err.message,
+          hasPostgresUrl: Boolean(process.env.POSTGRES_URL),
+          hasDatabaseUrl: Boolean(process.env.DATABASE_URL),
+          mode,
+        });
+      }
     }
     const localDemo =
       mode === "evaluation" &&
