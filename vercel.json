@@ -1,14 +1,4 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "cleanUrls": true,
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/index.js?_vercel_url=/api/$1"
-    },
-    {
-      "source": "/evidence/(.*)",
-      "destination": "/api/index.js?_vercel_url=/evidence/$1"
-    }
-  ]
+  "cleanUrls": true
 }
