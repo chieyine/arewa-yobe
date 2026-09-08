@@ -1,17 +1,11 @@
 export default async function handler(req, res) {
   try {
-    if (req.url.includes("debug")) {
-      res.writeHead(200, { "content-type": "application/json" });
-      return res.end(
-        JSON.stringify(
-          {
-            url: req.url,
-            headers: req.headers,
-          },
-          null,
-          2,
-        ),
-      );
+    const parsedUrl = new URL(req.url, "http://localhost");
+    const incomingPath = parsedUrl.searchParams.get("_vercel_url");
+    if (incomingPath) {
+      parsedUrl.searchParams.delete("_vercel_url");
+      const qs = parsedUrl.searchParams.toString();
+      req.url = incomingPath + (qs ? `?${qs}` : "");
     }
     const { ensureDatabaseReady } = await import("../src/auto-migrate.mjs");
     await ensureDatabaseReady();
@@ -29,12 +23,6 @@ export default async function handler(req, res) {
         error: {
           code: "SERVER_EXECUTION_ERROR",
           message: err.message,
-          env: {
-            hasPostgresUrl: Boolean(process.env.POSTGRES_URL),
-            hasDatabaseUrl: Boolean(process.env.DATABASE_URL),
-            hasDatabaseUrlUnpooled: Boolean(process.env.DATABASE_URL_UNPOOLED),
-            appMode: process.env.APP_MODE || "evaluation",
-          },
         },
       }),
     );

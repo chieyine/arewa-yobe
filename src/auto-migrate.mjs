@@ -47,7 +47,14 @@ export async function ensureDatabaseReady() {
         ).rows[0]?.count;
         if (Number(accCount) === 0) {
           console.log("Seeding demo evaluation data into Neon database...");
-          await seed(c, null);
+          let creds = [];
+          if (process.env.DEMO_CREDENTIALS_JSON) {
+            try {
+              const p = JSON.parse(process.env.DEMO_CREDENTIALS_JSON);
+              creds = Array.isArray(p) ? p : p.credentials || [];
+            } catch {}
+          }
+          await seed(c, null, "2026-09-08", creds);
         }
       }
     } finally {
