@@ -609,6 +609,12 @@ const mime = {
   ".png": "image/png",
 };
 export async function handleRequest(req, res) {
+  try {
+    const { ensureDatabaseReady } = await import("./src/auto-migrate.mjs");
+    await ensureDatabaseReady();
+  } catch (err) {
+    console.error("ensureDatabaseReady warning:", err.message);
+  }
   res.setHeader("x-request-id", randomUUID());
   res.setHeader(
     "content-security-policy",
@@ -665,21 +671,26 @@ export async function handleRequest(req, res) {
       return res.end(data);
     }
     const file = u.pathname === "/" ? "index.html" : u.pathname.slice(1);
-    const target = path.resolve(publicDir, file);
-    if (!target.startsWith(publicDir + path.sep) || file.includes(".."))
-      throw Error("NOT_FOUND");
     let data;
-    try {
-      data = await fs.readFile(target);
-    } catch {
-      if (path.extname(file)) throw Error("NOT_FOUND");
-      data = await fs.readFile(path.join(publicDir, "index.html"));
+    for (const cand of [
+      path.resolve(publicDir, file),
+      path.join(root, "public", file),
+      path.join(root, "dist", file),
+      path.join(root, "dist", "public", file),
+      path.join(root, "public", "index.html"),
+      path.join(root, "dist", "index.html"),
+    ]) {
+      try {
+        data = await fs.readFile(cand);
+        break;
+      } catch {}
     }
+    if (!data) throw Error("NOT_FOUND");
     res.writeHead(200, {
       "content-type": mime[path.extname(file)] || "text/html; charset=utf-8",
       "cache-control": file === "sw.js" ? "no-cache" : "no-cache",
     });
-    res.end(data);
+    return res.end(data);
   } catch {
     send(res, 404, {
       code: "NOT_FOUND",
@@ -702,3 +713,5 @@ if (isDirectRun && !process.env.VERCEL && !process.env.NOW_REGION) {
     server.close(() => Promise.all([pool.end(), processorPool.end()])),
   );
 }
+
+export default handleRequest;
