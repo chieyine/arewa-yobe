@@ -7,8 +7,8 @@
     "node": ">=20.x"
   },
   "scripts": {
-    "dev": "node server.mjs",
-    "start": "NODE_ENV=production node server.mjs",
+    "dev": "node src/server.mjs",
+    "start": "NODE_ENV=production node src/server.mjs",
     "build": "node scripts/build.mjs",
     "lint": "node scripts/check.mjs",
     "db:start": "node scripts/local-db.mjs",

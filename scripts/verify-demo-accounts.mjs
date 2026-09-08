@@ -13,7 +13,7 @@ for(const account of data.accounts){
  await fetch(base+'/api/auth/logout',{method:'POST',headers:{'content-type':'application/json',cookie:result.headers.get('set-cookie').split(';')[0]},body:'{}'});
 }
 const forwarded=await fetch(base+'/api/demo-password',{method:'POST',headers:{'content-type':'application/json','x-forwarded-for':'203.0.113.1'},body:JSON.stringify({email:data.accounts[0].email})});if(forwarded.status!==403)throw Error('Forwarded password access not blocked');
-const production=spawn(process.execPath,['server.mjs'],{env:{...process.env,PORT:'3198',APP_MODE:'production',NODE_ENV:'production'},stdio:'ignore'});
+const production=spawn(process.execPath,['src/server.mjs'],{env:{...process.env,PORT:'3198',APP_MODE:'production',NODE_ENV:'production'},stdio:'ignore'});
 try{
  let hidden;
  for(let n=0;n<40;n++){try{hidden=await(await fetch('http://localhost:3198/api/demo-accounts')).json();break;}catch{await new Promise(r=>setTimeout(r,150));}}

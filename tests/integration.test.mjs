@@ -30,7 +30,7 @@ async function call(user, url, method = "GET", body) {
 before(async () => {
   f = await fixture();
   evidenceDir = path.resolve(".local", f.name + "-evidence");
-  server = spawn(process.execPath, ["server.mjs"], {
+  server = spawn(process.execPath, ["src/server.mjs"], {
     env: {
       ...process.env,
       PORT: String(port),

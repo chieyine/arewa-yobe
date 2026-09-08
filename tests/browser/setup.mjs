@@ -11,7 +11,7 @@ export default async function () {
     JSON.stringify({ credentials: f.credentials, database: f.name }),
     { mode: 0o600 },
   );
-  const server = spawn(process.execPath, ["server.mjs"], {
+  const server = spawn(process.execPath, ["src/server.mjs"], {
     env: {
       ...process.env,
       PORT: "3193",

@@ -10,19 +10,16 @@ import {
   processEvidence,
   processorPool,
   localEvaluation,
-} from "./src/db.mjs";
-import { filters, listReports, reportDetail, dashboard } from "./src/query.mjs";
-import { csvExport, xlsxExport, pdfExport } from "./src/exports.mjs";
-const root = path.dirname(new URL(import.meta.url).pathname);
-const publicDir = path.join(
-  root,
-  process.env.NODE_ENV === "production" ? "dist/public" : "public",
-);
+} from "./db.mjs";
+import { filters, listReports, reportDetail, dashboard } from "./query.mjs";
+import { csvExport, xlsxExport, pdfExport } from "./exports.mjs";
+const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
+const publicDir = path.join(root, "public");
 const evidenceDir = path.resolve(
-  process.env.EVIDENCE_DIR || "data/evidence-v2",
+  process.env.EVIDENCE_DIR || path.join(root, "data/evidence-v2"),
 );
 const secretDir = path.resolve(
-  process.env.SECRET_DIR || localEvaluation.secretDir || ".secrets",
+  process.env.SECRET_DIR || localEvaluation.secretDir || path.join(root, ".secrets"),
 );
 async function loadDemoCredentials() {
   if (process.env.DEMO_CREDENTIALS_JSON) {
@@ -610,7 +607,7 @@ const mime = {
 };
 export async function handleRequest(req, res) {
   try {
-    const { ensureDatabaseReady } = await import("./src/auto-migrate.mjs");
+    const { ensureDatabaseReady } = await import("./auto-migrate.mjs");
     await ensureDatabaseReady();
   } catch (err) {
     console.error("ensureDatabaseReady warning:", err.message);

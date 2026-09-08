@@ -3,7 +3,7 @@ import {once} from 'node:events';
 import fs from 'node:fs/promises';
 const fixture=JSON.parse(await fs.readFile('.secrets/demo-credentials.json','utf8')).credentials.find(x=>x.role==='FOCAL_PERSON');
 for(const [mode,enabled,expected] of [['evaluation','true',200],['evaluation','false',403],['production','true',403]]){
- const child=spawn(process.execPath,['server.mjs'],{env:{...process.env,APP_MODE:mode,ALLOW_PUBLIC_DEMO_LOGIN:enabled,PORT:'3197',NODE_ENV:'production'},stdio:'ignore'});
+ const child=spawn(process.execPath,['src/server.mjs'],{env:{...process.env,APP_MODE:mode,ALLOW_PUBLIC_DEMO_LOGIN:enabled,PORT:'3197',NODE_ENV:'production'},stdio:'ignore'});
  const exited=once(child,'exit');
  try{
   for(let i=0;i<50;i++){try{await fetch('http://localhost:3197/api/demo-accounts');break;}catch{await new Promise(r=>setTimeout(r,100));}}

@@ -2,7 +2,7 @@ export default async function handler(req, res) {
   try {
     const { ensureDatabaseReady } = await import("../src/auto-migrate.mjs");
     await ensureDatabaseReady();
-    const { handleRequest } = await import("../server.mjs");
+    const { handleRequest } = await import("../src/server.mjs");
     return await handleRequest(req, res);
   } catch (err) {
     console.error("Vercel Serverless Execution Error:", err);
