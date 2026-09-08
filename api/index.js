@@ -1,8 +1,17 @@
 export default async function handler(req, res) {
-    if (req.headers["x-forwarded-url"]) {
-      req.url = req.headers["x-forwarded-url"];
-    } else if (req.headers["x-matched-path"]) {
-      req.url = req.headers["x-matched-path"];
+  try {
+    if (req.url.includes("debug")) {
+      res.writeHead(200, { "content-type": "application/json" });
+      return res.end(
+        JSON.stringify(
+          {
+            url: req.url,
+            headers: req.headers,
+          },
+          null,
+          2,
+        ),
+      );
     }
     const { ensureDatabaseReady } = await import("../src/auto-migrate.mjs");
     await ensureDatabaseReady();
