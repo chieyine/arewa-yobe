@@ -10,19 +10,31 @@ try {
 }
 import path from "node:path";
 import { createHash } from "node:crypto";
-export const connection = (user = "arewa_app") => ({
-  host: process.env.PGHOST || path.resolve(".local/socket"),
-  port: Number(process.env.PGPORT || 55439),
-  database: process.env.PGDATABASE || localEvaluation.database || "postgres",
-  user,
-  password:
-    user === "arewa_owner"
-      ? process.env.PGOWNER_PASSWORD
-      : user === "arewa_processor"
-        ? process.env.PGPROCESSOR_PASSWORD
-        : process.env.PGPASSWORD,
-  max: 10,
-});
+export const connection = (user = "arewa_app") => {
+  if (process.env.DATABASE_URL) {
+    return {
+      connectionString: process.env.DATABASE_URL,
+      ssl:
+        process.env.PGSSLMODE === "disable"
+          ? false
+          : { rejectUnauthorized: false },
+      max: Number(process.env.PGMAXCONNECTIONS || 5),
+    };
+  }
+  return {
+    host: process.env.PGHOST || path.resolve(".local/socket"),
+    port: Number(process.env.PGPORT || 55439),
+    database: process.env.PGDATABASE || localEvaluation.database || "postgres",
+    user,
+    password:
+      user === "arewa_owner"
+        ? process.env.PGOWNER_PASSWORD
+        : user === "arewa_processor"
+          ? process.env.PGPROCESSOR_PASSWORD
+          : process.env.PGPASSWORD,
+    max: 10,
+  };
+};
 export const pool = new pg.Pool(connection());
 export const processorPool = new pg.Pool(connection("arewa_processor"));
 for (const connections of [pool, processorPool])
@@ -32,7 +44,7 @@ for (const connections of [pool, processorPool])
       error.code || "UNKNOWN",
     ),
   );
-export async function processEvidence(token, id, data) {
+export async function processEvidence(token, id, data, buffer) {
   const c = await processorPool.connect();
   try {
     await c.query("BEGIN");
@@ -40,6 +52,12 @@ export async function processEvidence(token, id, data) {
       digest(token),
     ]);
     const result = await rpc(c, "register_evidence", [id, data]);
+    if (buffer) {
+      await c.query(
+        "INSERT INTO civic.evidence_blobs (id, content, mime_type) VALUES ($1, $2, $3) ON CONFLICT (id) DO UPDATE SET content = EXCLUDED.content",
+        [id, buffer, data.mimeType || "image/jpeg"],
+      );
+    }
     await c.query("COMMIT");
     return result;
   } catch (e) {

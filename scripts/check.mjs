@@ -10,7 +10,7 @@ function walk(dir) {
 }
 const files = [
   "server.mjs",
-  ...["public", "src", "scripts", "tests"].flatMap(walk),
+  ...["public", "src", "scripts", "tests", "api"].flatMap(walk),
 ].filter((f) => /\.(mjs|js)$/.test(f));
 for (const file of files) {
   const result = spawnSync(process.execPath, ["--check", file], {

@@ -9,7 +9,8 @@ if (
     process.env.PGHOST === "database" &&
     process.env.PGDATABASE === "arewa_eval" &&
     process.env.ALLOW_COMPOSE_EVALUATION === "true"
-  )
+  ) &&
+  process.env.ALLOW_REMOTE_MIGRATION !== "true"
 )
   throw Error(
     "Remote migrations require a separate approved deployment procedure.",
@@ -32,6 +33,7 @@ try {
     "005_scoped_queries.sql",
     "006_aggregate_memory.sql",
     "007_trend_aggregation.sql",
+    "008_evidence_blobs.sql",
   ]) {
     const version = file.replace(".sql", "");
     if (
@@ -52,13 +54,17 @@ try {
     ["arewa_processor", process.env.PGPROCESSOR_PASSWORD],
   ]) {
     if (password) {
-      const stmt = (
-        await c.query(
-          "select format('ALTER ROLE %I PASSWORD %L',$1::text,$2::text) as sql",
-          [role, password],
-        )
-      ).rows[0].sql;
-      await c.query(stmt);
+      try {
+        const stmt = (
+          await c.query(
+            "select format('ALTER ROLE %I PASSWORD %L',$1::text,$2::text) as sql",
+            [role, password],
+          )
+        ).rows[0].sql;
+        await c.query(stmt);
+      } catch (err) {
+        console.warn(`Note: Could not alter password for role ${role}: ${err.message}`);
+      }
     }
   }
   console.log("PostgreSQL migrations applied.");

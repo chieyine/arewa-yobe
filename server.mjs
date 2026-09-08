@@ -1,6 +1,7 @@
 import http from "node:http";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { randomUUID, randomBytes, createHash } from "node:crypto";
 import sharp from "sharp";
 import {
@@ -24,6 +25,24 @@ const evidenceDir = path.resolve(
 const secretDir = path.resolve(
   process.env.SECRET_DIR || localEvaluation.secretDir || ".secrets",
 );
+async function loadDemoCredentials() {
+  if (process.env.DEMO_CREDENTIALS_JSON) {
+    try {
+      const parsed = JSON.parse(process.env.DEMO_CREDENTIALS_JSON);
+      return Array.isArray(parsed) ? parsed : parsed.credentials || [];
+    } catch {}
+  }
+  try {
+    return (
+      JSON.parse(
+        await fs.readFile(path.join(secretDir, "demo-credentials.json"), "utf8"),
+      ).credentials || []
+    );
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+    return [];
+  }
+}
 const mode = process.env.APP_MODE || "evaluation";
 if (!["development", "evaluation", "staging", "production"].includes(mode))
   throw Error("Invalid APP_MODE");
@@ -132,7 +151,8 @@ const sessionCookie = (token, age = 28800) =>
   `session=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${age}${mode === "production" || mode === "staging" ? "; Secure" : ""}`;
 const attempts = new Map();
 function rate(req, path) {
-  const key = req.socket.remoteAddress + ":" + path;
+  const ip = req.socket?.remoteAddress || req.headers?.["x-forwarded-for"]?.split(",")[0]?.trim() || "127.0.0.1";
+  const key = ip + ":" + path;
   const entry = attempts.get(key) || { n: 0, end: Date.now() + 60000 };
   if (entry.end < Date.now()) {
     entry.n = 0;
@@ -185,7 +205,7 @@ async function api(req, res, url) {
     const localDemo =
       mode === "evaluation" &&
       ["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(
-        req.socket.remoteAddress,
+        req.socket?.remoteAddress || "",
       ) &&
       ["localhost", "127.0.0.1", "[::1]"].includes(
         new URL("http://" + req.headers.host).hostname,
@@ -203,13 +223,7 @@ async function api(req, res, url) {
           message: "Password autofill is not enabled for this environment.",
         });
       const input = await body(req, 1000);
-      const entries =
-        JSON.parse(
-          await fs.readFile(
-            path.join(secretDir, "demo-credentials.json"),
-            "utf8",
-          ),
-        ).credentials || [];
+      const entries = await loadDemoCredentials();
       const allowed = ["FOCAL_PERSON", "MEAL", "ADMIN"]
         .map((role) =>
           entries.find(
@@ -229,18 +243,7 @@ async function api(req, res, url) {
     }
     if (p === "/api/demo-accounts" && req.method === "GET") {
       if (mode !== "evaluation") return send(res, 200, { accounts: [] });
-      let entries = [];
-      try {
-        entries =
-          JSON.parse(
-            await fs.readFile(
-              path.join(secretDir, "demo-credentials.json"),
-              "utf8",
-            ),
-          ).credentials || [];
-      } catch (error) {
-        if (error.code !== "ENOENT") throw error;
-      }
+      const entries = await loadDemoCredentials();
       const accounts = ["FOCAL_PERSON", "MEAL", "ADMIN"].flatMap((role) => {
         const entry = entries.find(
           (entry) =>
@@ -287,12 +290,14 @@ async function api(req, res, url) {
         rpc(c, "request_recovery", [String(b.email || "").slice(0, 254)]),
       );
       if (token) {
-        await fs.mkdir(secretDir, { recursive: true, mode: 0o700 });
-        await fs.writeFile(
-          path.join(secretDir, "last-recovery-link.txt"),
-          `http://localhost:${port}/#/reset?token=${token}\n`,
-          { mode: 0o600 },
-        );
+        try {
+          await fs.mkdir(secretDir, { recursive: true, mode: 0o700 });
+          await fs.writeFile(
+            path.join(secretDir, "last-recovery-link.txt"),
+            `http://localhost:${port}/#/reset?token=${token}\n`,
+            { mode: 0o600 },
+          );
+        } catch {}
       }
       return send(res, 200, {
         message:
@@ -441,17 +446,22 @@ async function api(req, res, url) {
           .digest("hex")
           .slice(0, 32);
         const filepath = path.join(evidenceDir, id);
-        await fs.mkdir(evidenceDir, { recursive: true, mode: 0o700 });
         try {
+          await fs.mkdir(evidenceDir, { recursive: true, mode: 0o700 });
           await fs.writeFile(filepath, transformed.data, {
             flag: "wx",
             mode: 0o600,
           });
         } catch (e) {
-          if (e.code !== "EEXIST") throw e;
-          const existing = await fs.readFile(filepath);
-          if (createHash("sha256").update(existing).digest("hex") !== checksum)
-            throw Error("IDEMPOTENCY_CONFLICT");
+          if (e.code === "EEXIST") {
+            try {
+              const existing = await fs.readFile(filepath);
+              if (createHash("sha256").update(existing).digest("hex") !== checksum)
+                throw Error("IDEMPOTENCY_CONFLICT");
+            } catch (err) {
+              if (err.message === "IDEMPOTENCY_CONFLICT") throw err;
+            }
+          }
         }
         return processEvidence(token, id, {
           mimeType: "image/jpeg",
@@ -462,7 +472,7 @@ async function api(req, res, url) {
           caption: String(b.caption || "").slice(0, 200),
           processing:
             "Auto-oriented, resized to at most 1600 px, JPEG encoded, metadata removed.",
-        });
+        }, transformed.data);
       }
       if (p === "/api/admin/users" && req.method === "GET")
         return {
@@ -476,12 +486,14 @@ async function api(req, res, url) {
         const b = await body(req, 10000);
         const password = randomBytes(18).toString("base64url");
         const u = await rpc(c, "manage_user", [null, b, password]);
-        await fs.mkdir(secretDir, { recursive: true, mode: 0o700 });
-        await fs.writeFile(
-          path.join(secretDir, `account-${u.id}.json`),
-          JSON.stringify({ email: b.email, password }, null, 2),
-          { mode: 0o600 },
-        );
+        try {
+          await fs.mkdir(secretDir, { recursive: true, mode: 0o700 });
+          await fs.writeFile(
+            path.join(secretDir, `account-${u.id}.json`),
+            JSON.stringify({ email: b.email, password }, null, 2),
+            { mode: 0o600 },
+          );
+        } catch {}
         return { user: u, delivery: "Private evaluator file; no email sent." };
       }
       m = p.match(/^\/api\/admin\/users\/([^/]+)$/);
@@ -586,7 +598,7 @@ const mime = {
   ".svg": "image/svg+xml",
   ".png": "image/png",
 };
-const server = http.createServer(async (req, res) => {
+export async function handleRequest(req, res) {
   res.setHeader("x-request-id", randomUUID());
   res.setHeader(
     "content-security-policy",
@@ -600,23 +612,44 @@ const server = http.createServer(async (req, res) => {
   );
   try {
     const u = new URL(req.url, `http://${req.headers.host || "localhost"}`);
-    if (u.pathname.startsWith("/api/")) return api(req, res, u);
+    if (u.pathname.startsWith("/api/")) return await api(req, res, u);
     if (u.pathname.startsWith("/evidence/")) {
       const id = u.pathname.split("/").pop();
       const evidence = await withDb(cookie(req), async (c) => {
         await rpc(c, "profile");
         await rpc(c, "record_evidence_access", [id]);
-        return (
+        const ev = (
           await c.query(
             "select data from civic.evidence where id=$1 AND data->>'state'='READY'",
             [id],
           )
         ).rows[0]?.data;
+        if (!ev) return null;
+        let blob = null;
+        try {
+          const blobRow = (
+            await c.query(
+              "select content, mime_type from civic.evidence_blobs where id=$1",
+              [id],
+            )
+          ).rows[0];
+          if (blobRow) {
+            blob = { content: blobRow.content, mimeType: blobRow.mime_type };
+          }
+        } catch {}
+        return { metadata: ev, blob };
       });
       if (!evidence) throw Error("NOT_FOUND");
-      const data = await fs.readFile(path.join(evidenceDir, id));
+      let data = evidence.blob?.content;
+      if (!data) {
+        try {
+          data = await fs.readFile(path.join(evidenceDir, id));
+        } catch {
+          throw Error("NOT_FOUND");
+        }
+      }
       res.writeHead(200, {
-        "content-type": "image/jpeg",
+        "content-type": evidence.blob?.mimeType || "image/jpeg",
         "cache-control": "private, no-store",
       });
       return res.end(data);
@@ -643,10 +676,19 @@ const server = http.createServer(async (req, res) => {
       message: "The requested resource is unavailable.",
     });
   }
-});
-server.listen(port, process.env.HOST || "127.0.0.1", () =>
-  console.log(`Arewa Civic Tracker listening on http://localhost:${port}`),
-);
-process.on("SIGTERM", () =>
-  server.close(() => Promise.all([pool.end(), processorPool.end()])),
-);
+}
+
+export const server = http.createServer(handleRequest);
+
+const isDirectRun =
+  Boolean(process.argv[1]) &&
+  fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
+
+if (isDirectRun && !process.env.VERCEL && !process.env.NOW_REGION) {
+  server.listen(port, process.env.HOST || "127.0.0.1", () =>
+    console.log(`Arewa Civic Tracker listening on http://localhost:${port}`),
+  );
+  process.on("SIGTERM", () =>
+    server.close(() => Promise.all([pool.end(), processorPool.end()])),
+  );
+}

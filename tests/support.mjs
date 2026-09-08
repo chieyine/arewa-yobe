@@ -19,6 +19,7 @@ export async function fixture() {
     "005_scoped_queries.sql",
     "006_aggregate_memory.sql",
     "007_trend_aggregation.sql",
+    "008_evidence_blobs.sql",
   ])
     await db.query(await fs.readFile("db/" + file, "utf8"));
   const secrets = path.resolve(".local", name + ".json");

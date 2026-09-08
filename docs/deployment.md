@@ -41,3 +41,30 @@ ALLOW_PUBLIC_DEMO_LOGIN=true
 The login page then fills both fields when an evaluator selects one of the three seeded demo accounts. The ordinary Sign in button still authenticates against the backend; this is not a role-switch bypass. These are deliberately shared credentials, including the demo administrator, so anyone visiting this enabled demo can use those accounts and change synthetic data. Do not enable it on a database containing real information.
 
 The server must have the matching seed-generated `.secrets/demo-credentials.json` (or its `SECRET_DIR` equivalent) in private runtime storage. Do not commit it or bake it into public frontend assets. Default remote autofill is disabled; `APP_MODE=production` and staging reject it even if the opt-in flag is set. Set the flag false to turn off remote autofill. Local loopback evaluation autofill remains available. The Compose service passes this opt-in setting; no hosted deployment was performed by adding it.
+
+## Vercel + Neon Serverless Deployment Path
+
+The repository is configured for serverless deployment using exclusively **Vercel** (frontend and API) and **Neon** (PostgreSQL):
+
+### 1. Database Setup (Neon)
+1. Create a serverless PostgreSQL project at [neon.tech](https://neon.tech).
+2. Copy your pooled connection string (e.g. `postgresql://[user]:[password]@[endpoint].neon.tech/[dbname]?sslmode=require`).
+3. Run migrations from your local environment against Neon:
+   ```sh
+   DATABASE_URL="your_neon_connection_string" ALLOW_REMOTE_MIGRATION=true npm run db:migrate
+   ```
+4. Seed demo data if configuring an evaluation deployment:
+   ```sh
+   DATABASE_URL="your_neon_connection_string" ALLOW_DEMO_SEED=true npm run seed:demo
+   ```
+
+### 2. Vercel Configuration
+1. Import the repository in [Vercel](https://vercel.com).
+2. Under Project Settings -> Environment Variables, configure:
+   - `DATABASE_URL`: Your Neon connection string.
+   - `APP_MODE`: `evaluation` (or `production`).
+   - `ALLOW_PUBLIC_DEMO_LOGIN`: `true` (if deploying evaluation autofill).
+   - `DEMO_CREDENTIALS_JSON`: The JSON contents from your seed output (optional, enables demo account autofill).
+3. Deploy. Vercel automatically routes `/api/*` and `/evidence/*` to `api/index.mjs` via `vercel.json` while serving static assets from `public/` at the edge.
+4. Uploaded photo evidence is stored directly in Neon (`civic.evidence_blobs`) as compressed binary data (`bytea`), requiring zero third-party bucket storage.
+
