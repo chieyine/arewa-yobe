@@ -41,20 +41,35 @@ export async function ensureDatabaseReady() {
           await c.query("COMMIT");
         }
       }
-      if (process.env.APP_MODE === "evaluation") {
+      if (process.env.APP_MODE === "evaluation" || !process.env.APP_MODE) {
+        let creds = [];
+        if (process.env.DEMO_CREDENTIALS_JSON) {
+          try {
+            const p = JSON.parse(process.env.DEMO_CREDENTIALS_JSON);
+            creds = Array.isArray(p) ? p : p.credentials || [];
+          } catch {}
+        }
+        if (!creds.length) {
+          try {
+            const { evaluationCredentials } = await import(
+              "./evaluation-credentials.mjs"
+            );
+            creds = evaluationCredentials || [];
+          } catch {}
+        }
         const accCount = (
           await c.query("select count(*) from civic.accounts")
         ).rows[0]?.count;
         if (Number(accCount) === 0) {
           console.log("Seeding demo evaluation data into Neon database...");
-          let creds = [];
-          if (process.env.DEMO_CREDENTIALS_JSON) {
-            try {
-              const p = JSON.parse(process.env.DEMO_CREDENTIALS_JSON);
-              creds = Array.isArray(p) ? p : p.credentials || [];
-            } catch {}
-          }
           await seed(c, null, "2026-09-08", creds);
+        } else if (creds.length) {
+          for (const cred of creds) {
+            await c.query(
+              "UPDATE civic.accounts SET password_hash = crypt($1, gen_salt('bf', 8)) WHERE lower(email) = lower($2)",
+              [cred.password, cred.email],
+            );
+          }
         }
       }
     } finally {

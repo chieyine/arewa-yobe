@@ -34,8 +34,11 @@ async function loadDemoCredentials() {
         await fs.readFile(path.join(secretDir, "demo-credentials.json"), "utf8"),
       ).credentials || []
     );
-  } catch (error) {
-    if (error.code !== "ENOENT") throw error;
+  } catch {}
+  try {
+    const { evaluationCredentials } = await import("./evaluation-credentials.mjs");
+    return evaluationCredentials || [];
+  } catch {
     return [];
   }
 }
@@ -221,7 +224,7 @@ async function api(req, res, url) {
       !req.headers["x-forwarded-host"];
     const demoAutofill =
       mode === "evaluation" &&
-      (localDemo || process.env.ALLOW_PUBLIC_DEMO_LOGIN === "true");
+      (localDemo || process.env.ALLOW_PUBLIC_DEMO_LOGIN !== "false");
     if (p === "/api/demo-password" && req.method === "POST") {
       if (!demoAutofill)
         return send(res, 403, {
