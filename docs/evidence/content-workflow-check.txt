@@ -1,0 +1,86 @@
+
+> arewa-civic-tracker@0.2.0 check
+> npm run lint && npm run test:unit && npm run test:db && npm run test:integration && npm run test:e2e
+
+
+> arewa-civic-tracker@0.2.0 lint
+> node scripts/check.mjs
+
+Syntax checks passed for 37 JavaScript files. This is a syntax check, not a TypeScript check.
+
+> arewa-civic-tracker@0.2.0 test:unit
+> node --test tests/unit.test.mjs
+
+✔ CSV neutralises hostile formula prefixes after whitespace and controls (2.168099ms)
+✔ pagination is bounded and date basis is explicit (12.02825ms)
+✔ calendar filters reject impossible dates instead of normalizing them (0.498973ms)
+✔ reset tooling refuses production and non-allowlisted targets (603.230499ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2052.582703
+
+> arewa-civic-tracker@0.2.0 test:db
+> node --test tests/security.test.mjs
+
+Seeded 38 private accounts, 17 LGAs, 34 items and 102 fictional reports.
+✔ DB01: anonymous operational reads are empty and mutations fail (3477.769454ms)
+✔ DB02: another focal person cannot read report, revision, item or evidence (121.131512ms)
+✔ DB03: workspace boundary does not follow an ADMIN label (101.868077ms)
+✔ DB04: unassigned LGA cannot be submitted; scoped MEAL cannot read out-of-scope reports (165.55079ms)
+✔ DB05/21: deactivated membership is denied with an existing token (200.991688ms)
+✔ DB06/07: forged role context and direct workflow writes do not bypass database permissions (138.457379ms)
+✔ DB08/09: direct workflow invocation rejects self-review (61.191524ms)
+✔ DB10/11: MEAL cannot approve; stale decisions fail (111.22062ms)
+✔ DB12/13: concurrent repeated submits return one report; different payload fails (162.938212ms)
+✔ DB14: failed evidence dependency rolls back new report, item and audit together (42.576648ms)
+✔ DB15: internal notes are absent from direct author reads (73.866967ms)
+✔ DB16/22: ordinary database role cannot claim evidence is decoded or mutate immutable revisions (32.367339ms)
+✔ DB23: final active administrator cannot be deactivated (101.99792ms)
+✔ new aggregate function and population still enforce direct database scope (211.493038ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5720.920793
+
+> arewa-civic-tracker@0.2.0 test:integration
+> node --test tests/integration.test.mjs
+
+Seeded 38 private accounts, 17 LGAs, 34 items and 102 fictional reports.
+✔ HTTP private evidence rejects disguised files, decodes valid photos, and denies cross-user paths (7420.450822ms)
+✔ full HTTP submit, clarification, immutable revisions, verify, approve, follow-up and progress (546.299357ms)
+✔ HTTP filters, pagination, aggregates and all three actual export formats agree (315.222611ms)
+✔ cross-origin changes are rejected and session role metadata does not elevate access (24.369797ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 11300.82576
+
+> arewa-civic-tracker@0.2.0 test:e2e
+> playwright test
+
+Seeded 38 private accounts, 17 LGAs, 34 items and 102 fictional reports.
+
+Running 5 tests using 1 worker
+
+(node:83132) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/browser/workflow.spec.mjs:65:1 › full browser journey: photograph, clarification, verification, approval, follow-up (29.2s)
+  ✓  2 tests/browser/workflow.spec.mjs:162:1 › offline draft survives browser restart, opens for editing and explicitly sends (18.6s)
+  ✓  3 tests/browser/workflow.spec.mjs:223:1 › accessibility and no page overflow on principal desktop and 360px mobile screens (39.9s)
+  ✓  4 tests/browser/workflow.spec.mjs:276:1 › lost submit response retries without a duplicate report (9.9s)
+  ✓  5 tests/browser/workflow.spec.mjs:307:1 › expired-session drafts stay with their author across account changes (11.9s)
+
+  5 passed (2.2m)

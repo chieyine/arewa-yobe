@@ -1,0 +1,13 @@
+Seeded 38 private accounts, 17 LGAs, 34 items and 102 fictional reports.
+
+Running 5 tests using 1 worker
+
+(node:78188) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/browser/workflow.spec.mjs:65:1 › full browser journey: photograph, clarification, verification, approval, follow-up (25.1s)
+  ✓  2 tests/browser/workflow.spec.mjs:162:1 › offline draft survives browser restart, opens for editing and explicitly sends (22.5s)
+  ✓  3 tests/browser/workflow.spec.mjs:223:1 › accessibility and no page overflow on principal desktop and 360px mobile screens (1.2m)
+  ✓  4 tests/browser/workflow.spec.mjs:278:1 › lost submit response retries without a duplicate report (11.0s)
+  ✓  5 tests/browser/workflow.spec.mjs:309:1 › expired-session drafts stay with their author across account changes (15.4s)
+
+  5 passed (2.6m)

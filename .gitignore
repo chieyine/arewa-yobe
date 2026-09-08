@@ -1,0 +1,13 @@
+.env
+.env.local
+*.log
+.DS_Store
+node_modules/
+dist/
+.local/
+.secrets/
+data/db.json
+data/*.sqlite*
+data/evidence*/
+test-results/
+playwright-report/

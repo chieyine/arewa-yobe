@@ -1,0 +1,16 @@
+{
+  "date": "2026-09-08T04:38:00.154Z",
+  "source": "Disposable synthetic PostgreSQL database",
+  "restoredDatabase": "arewa_restore_7e5a2f1fe9984940bbe9ed720390b5bd",
+  "accounts": 38,
+  "reports": 102,
+  "revisions": 102,
+  "evidenceChecksums": 1,
+  "roleSignIn": "PASS",
+  "focalScope": "PASS (6 reports)",
+  "anonymousDenial": "PASS",
+  "scopedExports": "PASS (CSV, XLSX, PDF)",
+  "encryptedBackup": "AES-256-GCM",
+  "restore": "PASS",
+  "note": "Both disposable databases are removed after verification; this is an executed restore drill, not a scheduled production backup."
+}

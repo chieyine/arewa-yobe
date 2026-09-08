@@ -1,0 +1,9 @@
+Seeded 38 private accounts, 17 LGAs, 34 items and 102 fictional reports.
+
+Running 1 test using 1 worker
+
+(node:77120) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/browser/workflow.spec.mjs:223:1 › accessibility and no page overflow on principal desktop and 360px mobile screens (51.6s)
+
+  1 passed (1.1m)

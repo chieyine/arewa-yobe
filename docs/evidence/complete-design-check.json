@@ -1,0 +1,62 @@
+{
+  "date": "2026-09-08T08:57:13.739Z",
+  "results": [
+    {
+      "route": "/monitoring",
+      "overflow": false
+    },
+    {
+      "route": "/monitoring/reports",
+      "overflow": false
+    },
+    {
+      "route": "/monitoring/reports/1c704202-7982-4815-8e8d-8ffb5da4030c",
+      "overflow": false
+    },
+    {
+      "route": "/monitoring/items",
+      "overflow": false
+    },
+    {
+      "route": "/monitoring/items/0e1309c2-12a2-4bde-909d-6c7e8ba2b1d8",
+      "overflow": false
+    },
+    {
+      "route": "/admin/users",
+      "overflow": false
+    },
+    {
+      "route": "/admin/reference-data",
+      "overflow": false
+    },
+    {
+      "route": "/admin/audit",
+      "overflow": false
+    },
+    {
+      "route": "/notifications",
+      "overflow": false
+    },
+    {
+      "route": "/help",
+      "overflow": false
+    },
+    {
+      "route": "/field",
+      "overflow": false
+    },
+    {
+      "route": "/field/reports",
+      "overflow": false
+    },
+    {
+      "route": "/field/drafts",
+      "overflow": false
+    },
+    {
+      "route": "/field/reports/new",
+      "overflow": false
+    }
+  ],
+  "errors": []
+}

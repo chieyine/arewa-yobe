@@ -1,0 +1,54 @@
+services:
+  database:
+    image: postgres:18.6-bookworm
+    environment:
+      POSTGRES_USER: arewa_owner
+      POSTGRES_PASSWORD: ${PGOWNER_PASSWORD:?Set a private owner password}
+      POSTGRES_DB: arewa_eval
+    volumes:
+      - arewa-postgres:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U arewa_owner -d arewa_eval"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  migrate:
+    build: .
+    command: ["node", "scripts/migrate.mjs"]
+    profiles: ["setup"]
+    environment:
+      PGHOST: database
+      PGPORT: 5432
+      PGDATABASE: arewa_eval
+      PGOWNER_PASSWORD: ${PGOWNER_PASSWORD}
+      PGPASSWORD: ${PGPASSWORD:?Set a private application password}
+      PGPROCESSOR_PASSWORD: ${PGPROCESSOR_PASSWORD:?Set a private evidence-processor password}
+      ALLOW_COMPOSE_EVALUATION: "true"
+    depends_on:
+      database:
+        condition: service_healthy
+  arewa:
+    build: .
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      APP_MODE: evaluation
+      ALLOW_PUBLIC_DEMO_LOGIN: ${ALLOW_PUBLIC_DEMO_LOGIN:-false}
+      PORT: 3000
+      HOST: 0.0.0.0
+      PGHOST: database
+      PGPORT: 5432
+      PGDATABASE: arewa_eval
+      PGPASSWORD: ${PGPASSWORD}
+      PGPROCESSOR_PASSWORD: ${PGPROCESSOR_PASSWORD}
+    volumes:
+      - arewa-data:/app/data
+      - arewa-secrets:/app/.secrets
+    depends_on:
+      database:
+        condition: service_healthy
+    restart: unless-stopped
+volumes:
+  arewa-postgres:
+  arewa-data:
+  arewa-secrets:

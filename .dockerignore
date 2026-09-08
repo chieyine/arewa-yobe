@@ -1,0 +1,9 @@
+node_modules
+.local
+.secrets
+data
+.git
+test-results
+playwright-report
+docs/evidence
+dist

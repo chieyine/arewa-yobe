@@ -1,0 +1,10 @@
+{
+  "xlsxSheets": [
+    "Reports",
+    "Read me"
+  ],
+  "xlsxReportRows": 103,
+  "csvReportRows": 103,
+  "formulaCells": 0,
+  "result": "PASS: actual Excel workbook parsed with openpyxl; CSV parsed with Python csv"
+}

@@ -1,0 +1,392 @@
+
+> arewa-civic-tracker@0.2.0 test:e2e
+> playwright test
+
+Seeded 38 private accounts, 17 LGAs, 34 items and 102 fictional reports.
+
+Running 5 tests using 1 worker
+
+(node:76170) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/browser/workflow.spec.mjs:65:1 › full browser journey: photograph, clarification, verification, approval, follow-up (16.4s)
+  ✓  2 tests/browser/workflow.spec.mjs:162:1 › offline draft survives browser restart, opens for editing and explicitly sends (10.5s)
+  ✘  3 tests/browser/workflow.spec.mjs:223:1 › accessibility and no page overflow on principal desktop and 360px mobile screens (21.3s)
+(node:76287) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  4 tests/browser/workflow.spec.mjs:275:1 › lost submit response retries without a duplicate report (12.1s)
+  ✓  5 tests/browser/workflow.spec.mjs:306:1 › expired-session drafts stay with their author across account changes (13.5s)
+
+
+  1) tests/browser/workflow.spec.mjs:223:1 › accessibility and no page overflow on principal desktop and 360px mobile screens 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  -   1
+    + Received  + 338
+
+    - Array []
+    + Array [
+    +   Object {
+    +     "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+    +     "help": "Elements must meet minimum color contrast ratio thresholds",
+    +     "helpUrl": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=playwright",
+    +     "id": "color-contrast",
+    +     "impact": "serious",
+    +     "nodes": Array [
+    +       Object {
+    +         "all": Array [],
+    +         "any": Array [
+    +           Object {
+    +             "data": Object {
+    +               "bgColor": "#e3e6d7",
+    +               "contrastRatio": 4.18,
+    +               "expectedContrastRatio": "4.5:1",
+    +               "fgColor": "#5f705b",
+    +               "fontSize": "6.8pt (9px)",
+    +               "fontWeight": "normal",
+    +               "messageKey": null,
+    +             },
+    +             "id": "color-contrast",
+    +             "impact": "serious",
+    +             "message": "Element has insufficient color contrast of 4.18 (foreground color: #5f705b, background color: #e3e6d7, font size: 6.8pt (9px), font weight: normal). Expected contrast ratio of 4.5:1",
+    +             "relatedNodes": Array [
+    +               Object {
+    +                 "html": "<aside class=\"sidebar\">",
+    +                 "target": Array [
+    +                   "aside",
+    +                 ],
+    +               },
+    +             ],
+    +           },
+    +         ],
+    +         "failureSummary": "Fix any of the following:
+    +   Element has insufficient color contrast of 4.18 (foreground color: #5f705b, background color: #e3e6d7, font size: 6.8pt (9px), font weight: normal). Expected contrast ratio of 4.5:1",
+    +         "html": "<div class=\"nav-label\">WORKSPACE</div>",
+    +         "impact": "serious",
+    +         "none": Array [],
+    +         "target": Array [
+    +           "aside > .nav-label",
+    +         ],
+    +       },
+    +       Object {
+    +         "all": Array [],
+    +         "any": Array [
+    +           Object {
+    +             "data": Object {
+    +               "bgColor": "#e3e6d7",
+    +               "contrastRatio": 4.33,
+    +               "expectedContrastRatio": "4.5:1",
+    +               "fgColor": "#5c6d63",
+    +               "fontSize": "9.0pt (12px)",
+    +               "fontWeight": "normal",
+    +               "messageKey": null,
+    +             },
+    +             "id": "color-contrast",
+    +             "impact": "serious",
+    +             "message": "Element has insufficient color contrast of 4.33 (foreground color: #5c6d63, background color: #e3e6d7, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1",
+    +             "relatedNodes": Array [
+    +               Object {
+    +                 "html": "<aside class=\"sidebar\">",
+    +                 "target": Array [
+    +                   "aside",
+    +                 ],
+    +               },
+    +             ],
+    +           },
+    +         ],
+    +         "failureSummary": "Fix any of the following:
+    +   Element has insufficient color contrast of 4.33 (foreground color: #5c6d63, background color: #e3e6d7, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1",
+    +         "html": "<span>Reports &amp; review</span>",
+    +         "impact": "serious",
+    +         "none": Array [],
+    +         "target": Array [
+    +           ".nav-link[href$=\"#/monitoring/reports\"] > span",
+    +         ],
+    +       },
+    +       Object {
+    +         "all": Array [],
+    +         "any": Array [
+    +           Object {
+    +             "data": Object {
+    +               "bgColor": "#e3e6d7",
+    +               "contrastRatio": 4.33,
+    +               "expectedContrastRatio": "4.5:1",
+    +               "fgColor": "#5c6d63",
+    +               "fontSize": "9.0pt (12px)",
+    +               "fontWeight": "normal",
+    +               "messageKey": null,
+    +             },
+    +             "id": "color-contrast",
+    +             "impact": "serious",
+    +             "message": "Element has insufficient color contrast of 4.33 (foreground color: #5c6d63, background color: #e3e6d7, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1",
+    +             "relatedNodes": Array [
+    +               Object {
+    +                 "html": "<aside class=\"sidebar\">",
+    +                 "target": Array [
+    +                   "aside",
+    +                 ],
+    +               },
+    +             ],
+    +           },
+    +         ],
+    +         "failureSummary": "Fix any of the following:
+    +   Element has insufficient color contrast of 4.33 (foreground color: #5c6d63, background color: #e3e6d7, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1",
+    +         "html": "<span>Tracked items</span>",
+    +         "impact": "serious",
+    +         "none": Array [],
+    +         "target": Array [
+    +           ".nav-link[href$=\"#/monitoring/items\"] > span",
+    +         ],
+    +       },
+    +       Object {
+    +         "all": Array [],
+    +         "any": Array [
+    +           Object {
+    +             "data": Object {
+    +               "bgColor": "#e3e6d7",
+    +               "contrastRatio": 4.33,
+    +               "expectedContrastRatio": "4.5:1",
+    +               "fgColor": "#5c6d63",
+    +               "fontSize": "9.0pt (12px)",
+    +               "fontWeight": "normal",
+    +               "messageKey": null,
+    +             },
+    +             "id": "color-contrast",
+    +             "impact": "serious",
+    +             "message": "Element has insufficient color contrast of 4.33 (foreground color: #5c6d63, background color: #e3e6d7, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1",
+    +             "relatedNodes": Array [
+    +               Object {
+    +                 "html": "<aside class=\"sidebar\">",
+    +                 "target": Array [
+    +                   "aside",
+    +                 ],
+    +               },
+    +             ],
+    +           },
+    +         ],
+    +         "failureSummary": "Fix any of the following:
+    +   Element has insufficient color contrast of 4.33 (foreground color: #5c6d63, background color: #e3e6d7, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1",
+    +         "html": "<span>Notifications</span>",
+    +         "impact": "serious",
+    +         "none": Array [],
+    +         "target": Array [
+    +           ".nav-link[href$=\"#/notifications\"] > span",
+    +         ],
+    +       },
+    +       Object {
+    +         "all": Array [],
+    +         "any": Array [
+    +           Object {
+    +             "data": Object {
+    +               "bgColor": "#e3e6d7",
+    +               "contrastRatio": 4.33,
+    +               "expectedContrastRatio": "4.5:1",
+    +               "fgColor": "#5c6d63",
+    +               "fontSize": "9.0pt (12px)",
+    +               "fontWeight": "normal",
+    +               "messageKey": null,
+    +             },
+    +             "id": "color-contrast",
+    +             "impact": "serious",
+    +             "message": "Element has insufficient color contrast of 4.33 (foreground color: #5c6d63, background color: #e3e6d7, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1",
+    +             "relatedNodes": Array [
+    +               Object {
+    +                 "html": "<aside class=\"sidebar\">",
+    +                 "target": Array [
+    +                   "aside",
+    +                 ],
+    +               },
+    +             ],
+    +           },
+    +         ],
+    +         "failureSummary": "Fix any of the following:
+    +   Element has insufficient color contrast of 4.33 (foreground color: #5c6d63, background color: #e3e6d7, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1",
+    +         "html": "<span>Help &amp; guidance</span>",
+    +         "impact": "serious",
+    +         "none": Array [],
+    +         "target": Array [
+    +           ".nav-link[href$=\"#/help\"] > span",
+    +         ],
+    +       },
+    +       Object {
+    +         "all": Array [],
+    +         "any": Array [
+    +           Object {
+    +             "data": Object {
+    +               "bgColor": "#e3e6d7",
+    +               "contrastRatio": 4.18,
+    +               "expectedContrastRatio": "4.5:1",
+    +               "fgColor": "#5f705b",
+    +               "fontSize": "6.8pt (9px)",
+    +               "fontWeight": "normal",
+    +               "messageKey": null,
+    +             },
+    +             "id": "color-contrast",
+    +             "impact": "serious",
+    +             "message": "Element has insufficient color contrast of 4.18 (foreground color: #5f705b, background color: #e3e6d7, font size: 6.8pt (9px), font weight: normal). Expected contrast ratio of 4.5:1",
+    +             "relatedNodes": Array [
+    +               Object {
+    +                 "html": "<aside class=\"sidebar\">",
+    +                 "target": Array [
+    +                   "aside",
+    +                 ],
+    +               },
+    +             ],
+    +           },
+    +         ],
+    +         "failureSummary": "Fix any of the following:
+    +   Element has insufficient color contrast of 4.18 (foreground color: #5f705b, background color: #e3e6d7, font size: 6.8pt (9px), font weight: normal). Expected contrast ratio of 4.5:1",
+    +         "html": "<div class=\"nav-label admin-label\">ADMINISTRATION</div>",
+    +         "impact": "serious",
+    +         "none": Array [],
+    +         "target": Array [
+    +           ".admin-label",
+    +         ],
+    +       },
+    +       Object {
+    +         "all": Array [],
+    +         "any": Array [
+    +           Object {
+    +             "data": Object {
+    +               "bgColor": "#e3e6d7",
+    +               "contrastRatio": 4.33,
+    +               "expectedContrastRatio": "4.5:1",
+    +               "fgColor": "#5c6d63",
+    +               "fontSize": "9.0pt (12px)",
+    +               "fontWeight": "normal",
+    +               "messageKey": null,
+    +             },
+    +             "id": "color-contrast",
+    +             "impact": "serious",
+    +             "message": "Element has insufficient color contrast of 4.33 (foreground color: #5c6d63, background color: #e3e6d7, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1",
+    +             "relatedNodes": Array [
+    +               Object {
+    +                 "html": "<aside class=\"sidebar\">",
+    +                 "target": Array [
+    +                   "aside",
+    +                 ],
+    +               },
+    +             ],
+    +           },
+    +         ],
+    +         "failureSummary": "Fix any of the following:
+    +   Element has insufficient color contrast of 4.33 (foreground color: #5c6d63, background color: #e3e6d7, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1",
+    +         "html": "<a href=\"#/admin/users\" class=\"nav-link \">",
+    +         "impact": "serious",
+    +         "none": Array [],
+    +         "target": Array [
+    +           "a[href$=\"#/admin/users\"]",
+    +         ],
+    +       },
+    +       Object {
+    +         "all": Array [],
+    +         "any": Array [
+    +           Object {
+    +             "data": Object {
+    +               "bgColor": "#e3e6d7",
+    +               "contrastRatio": 4.33,
+    +               "expectedContrastRatio": "4.5:1",
+    +               "fgColor": "#5c6d63",
+    +               "fontSize": "9.0pt (12px)",
+    +               "fontWeight": "normal",
+    +               "messageKey": null,
+    +             },
+    +             "id": "color-contrast",
+    +             "impact": "serious",
+    +             "message": "Element has insufficient color contrast of 4.33 (foreground color: #5c6d63, background color: #e3e6d7, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1",
+    +             "relatedNodes": Array [
+    +               Object {
+    +                 "html": "<aside class=\"sidebar\">",
+    +                 "target": Array [
+    +                   "aside",
+    +                 ],
+    +               },
+    +             ],
+    +           },
+    +         ],
+    +         "failureSummary": "Fix any of the following:
+    +   Element has insufficient color contrast of 4.33 (foreground color: #5c6d63, background color: #e3e6d7, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1",
+    +         "html": "<a href=\"#/admin/reference-data\" class=\"nav-link \"><svg aria-hidden=\"true\" class=\"icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 7l9-4 9 4-9 4-9-4zm0 5 9 4 9-4m-18 5 9 4 9-4\"></path></svg>Sectors</a>",
+    +         "impact": "serious",
+    +         "none": Array [],
+    +         "target": Array [
+    +           "a[href$=\"#/admin/reference-data\"]",
+    +         ],
+    +       },
+    +       Object {
+    +         "all": Array [],
+    +         "any": Array [
+    +           Object {
+    +             "data": Object {
+    +               "bgColor": "#e3e6d7",
+    +               "contrastRatio": 4.33,
+    +               "expectedContrastRatio": "4.5:1",
+    +               "fgColor": "#5c6d63",
+    +               "fontSize": "9.0pt (12px)",
+    +               "fontWeight": "normal",
+    +               "messageKey": null,
+    +             },
+    +             "id": "color-contrast",
+    +             "impact": "serious",
+    +             "message": "Element has insufficient color contrast of 4.33 (foreground color: #5c6d63, background color: #e3e6d7, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1",
+    +             "relatedNodes": Array [
+    +               Object {
+    +                 "html": "<aside class=\"sidebar\">",
+    +                 "target": Array [
+    +                   "aside",
+    +                 ],
+    +               },
+    +             ],
+    +           },
+    +         ],
+    +         "failureSummary": "Fix any of the following:
+    +   Element has insufficient color contrast of 4.33 (foreground color: #5c6d63, background color: #e3e6d7, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1",
+    +         "html": "<a href=\"#/admin/audit\" class=\"nav-link \"><svg aria-hidden=\"true\" class=\"icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 3h9l4 4v14H6V3m8 0v5h5M9 12h7m-7 4h7\"></path></svg>Activity log</a>",
+    +         "impact": "serious",
+    +         "none": Array [],
+    +         "target": Array [
+    +           "a[href$=\"#/admin/audit\"]",
+    +         ],
+    +       },
+    +     ],
+    +     "tags": Array [
+    +       "cat.color",
+    +       "wcag2aa",
+    +       "wcag143",
+    +       "TTv5",
+    +       "TT13.c",
+    +       "EN-301-549",
+    +       "EN-9.1.4.3",
+    +       "ACT",
+    +       "RGAAv4",
+    +       "RGAA-3.2.1",
+    +     ],
+    +   },
+    + ]
+
+      241 |       .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"])
+      242 |       .analyze();
+    > 243 |     expect(result.violations).toEqual([]);
+          |                               ^
+      244 |     await page.setViewportSize({ width: 360, height: 800 });
+      245 |     expect(
+      246 |       await page.evaluate(
+        at /Users/macbookpro/Documents/Arewa_Civic_Tracker_Agent_Pack/tests/browser/workflow.spec.mjs:243:31
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/workflow-accessibility-and-fcac3-op-and-360px-mobile-screens/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/workflow-accessibility-and-fcac3-op-and-360px-mobile-screens/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/workflow-accessibility-and-fcac3-op-and-360px-mobile-screens/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/workflow-accessibility-and-fcac3-op-and-360px-mobile-screens/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    tests/browser/workflow.spec.mjs:223:1 › accessibility and no page overflow on principal desktop and 360px mobile screens 
+  4 passed (1.9m)

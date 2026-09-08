@@ -1,0 +1,32 @@
+{
+  "date": "2026-09-08T04:45:45.487Z",
+  "files": [
+    {
+      "file": "index.html",
+      "bytes": 816,
+      "gzipBytes": 460
+    },
+    {
+      "file": "app.js",
+      "bytes": 75664,
+      "gzipBytes": 21602
+    },
+    {
+      "file": "offline.js",
+      "bytes": 3075,
+      "gzipBytes": 1131
+    },
+    {
+      "file": "styles.css",
+      "bytes": 44049,
+      "gzipBytes": 8620
+    },
+    {
+      "file": "manifest.webmanifest",
+      "bytes": 336,
+      "gzipBytes": 220
+    }
+  ],
+  "totalGzipBytes": 32033,
+  "note": "Measured static shell bytes only. Production transport compression requires reverse-proxy configuration; no LCP/CLS claim."
+}
