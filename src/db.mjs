@@ -11,9 +11,10 @@ try {
 import path from "node:path";
 import { createHash } from "node:crypto";
 export const connection = (user = "arewa_app") => {
-  if (process.env.DATABASE_URL) {
+  const dbUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+  if (dbUrl) {
     return {
-      connectionString: process.env.DATABASE_URL,
+      connectionString: dbUrl,
       ssl:
         process.env.PGSSLMODE === "disable"
           ? false

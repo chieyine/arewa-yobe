@@ -268,16 +268,20 @@ export async function seed(
           }
         }
       }
-    await fs.mkdir(path.dirname(secretFile), { recursive: true, mode: 0o700 });
-    await fs.writeFile(
-      secretFile,
-      JSON.stringify(
-        { generatedAt: new Date().toISOString(), credentials },
-        null,
-        2,
-      ),
-      { mode: 0o600 },
-    );
+    if (secretFile) {
+      try {
+        await fs.mkdir(path.dirname(secretFile), { recursive: true, mode: 0o700 });
+        await fs.writeFile(
+          secretFile,
+          JSON.stringify(
+            { generatedAt: new Date().toISOString(), credentials },
+            null,
+            2,
+          ),
+          { mode: 0o600 },
+        );
+      } catch {}
+    }
     await c.query("COMMIT");
     console.log(
       "Seeded 38 private accounts, 17 LGAs, 34 items and 102 fictional reports.",
