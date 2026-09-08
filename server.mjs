@@ -3,7 +3,6 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { randomUUID, randomBytes, createHash } from "node:crypto";
-import sharp from "sharp";
 import {
   withDb,
   rpc,
@@ -424,6 +423,7 @@ async function api(req, res, url) {
           throw Object.assign(Error("PHOTO_SIZE"), { status: 422 });
         let transformed, metadata;
         try {
+          const sharp = (await import("sharp")).default;
           const decoder = sharp(bytes, {
             limitInputPixels: 40_000_000,
             failOn: "warning",
