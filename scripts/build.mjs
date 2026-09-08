@@ -3,6 +3,7 @@ import path from "node:path";
 import { createHash } from "node:crypto";
 await fs.mkdir("dist", { recursive: true });
 await fs.cp("public", "dist/public", { recursive: true });
+await fs.cp("public", "dist", { recursive: true });
 async function walk(dir) {
   const entries = await fs.readdir(dir, { withFileTypes: true });
   const result = [];
