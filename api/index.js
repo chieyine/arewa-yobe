@@ -1,12 +1,33 @@
 export default async function handler(req, res) {
   try {
-    const parsedUrl = new URL(req.url, "http://localhost");
-    const incomingPath = parsedUrl.searchParams.get("_vercel_url");
-    if (incomingPath) {
-      parsedUrl.searchParams.delete("_vercel_url");
-      const qs = parsedUrl.searchParams.toString();
-      req.url = incomingPath + (qs ? `?${qs}` : "");
+    const incoming =
+      req.query?._vercel_url ||
+      new URL(req.url, "http://localhost").searchParams.get("_vercel_url") ||
+      (req.headers["x-forwarded-url"] &&
+      !req.headers["x-forwarded-url"].startsWith("/api/index")
+        ? req.headers["x-forwarded-url"]
+        : null);
+
+    if (incoming) {
+      req.url = incoming;
     }
+
+    if (req.url.includes("test-route")) {
+      res.writeHead(200, { "content-type": "application/json" });
+      return res.end(
+        JSON.stringify({
+          status: "ok",
+          incoming,
+          reqUrl: req.url,
+          query: req.query,
+          headers: {
+            "x-matched-path": req.headers["x-matched-path"],
+            "x-forwarded-url": req.headers["x-forwarded-url"],
+          },
+        }),
+      );
+    }
+
     const { ensureDatabaseReady } = await import("../src/auto-migrate.mjs");
     await ensureDatabaseReady();
     const { handleRequest } = await import("../src/server.mjs");
