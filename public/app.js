@@ -526,7 +526,7 @@ function reportTable(reports, own = false) {
       "No reports found",
       "Try a different filter or create your first field report.",
     );
-  return `<div class="table-wrap"><table class="table"><thead><tr><th scope="col">Report / item</th><th scope="col">Location</th>${staff ? '<th scope="col">Reported by</th>' : ""}<th scope="col">Visit date</th><th scope="col">Review status</th><th scope="col"><span class="sr-only">Open report</span></th></tr></thead><tbody>${reports.map((r) => `<tr><td><span class="reference">${esc(r.reference)}</span><strong class="table-title">${esc(r.item.title.replace(/^DEMO — /, ""))}</strong><span class="small subtle">${esc(refs.sectors.find((s) => s.id === r.item.sectorId)?.label || "")}</span></td><td>${esc(refs.lgas.find((l) => l.id === r.item.lgaId)?.name || "")}<span class="small subtle block">${esc(r.item.community)}</span></td>${staff ? `<td>${r.authorId === me.id ? '<span class="pill">You</span>' : esc(r.authorName || "Another reporter")}</td>` : ""}<td class="nowrap">${date(r.revision.observedDate)}</td><td>${badge(r.reviewState)}</td><td class="row-actions"><a class="open-link" href="/api/reports/${esc(r.id)}/download" download aria-label="Download ${esc(r.reference)} as PDF" title="Download PDF">${icon("download")}</a> <a class="open-link" href="#/${own ? "field" : "monitoring"}/reports/${r.id}" aria-label="Open ${esc(r.reference)}">${icon("arrow")}</a></td></tr>`).join("")}</tbody></table></div>`;
+  return `<div class="table-wrap"><table class="table"><thead><tr><th scope="col">Report / item</th><th scope="col">Location</th>${staff ? '<th scope="col">Reported by</th>' : ""}<th scope="col">Visit date</th><th scope="col">Review status</th><th scope="col" class="cell-actions"><span class="sr-only">Actions</span></th></tr></thead><tbody>${reports.map((r) => `<tr><td><span class="reference">${esc(r.reference)}</span><strong class="table-title">${esc(r.item.title.replace(/^DEMO — /, ""))}</strong><span class="small subtle">${esc(refs.sectors.find((s) => s.id === r.item.sectorId)?.label || "")}</span></td><td>${esc(refs.lgas.find((l) => l.id === r.item.lgaId)?.name || "")}<span class="small subtle block">${esc(r.item.community)}</span></td>${staff ? `<td>${r.authorId === me.id ? '<span class="pill">You</span>' : esc(r.authorName || "Another reporter")}</td>` : ""}<td class="nowrap">${date(r.revision.observedDate)}</td><td>${badge(r.reviewState)}</td><td class="cell-actions"><div class="row-actions"><a class="open-link" href="/api/reports/${esc(r.id)}/download" download aria-label="Download ${esc(r.reference)} as PDF" title="Download PDF">${icon("download")}</a><a class="open-link" href="#/${own ? "field" : "monitoring"}/reports/${r.id}" aria-label="Open ${esc(r.reference)}">${icon("arrow")}</a></div></td></tr>`).join("")}</tbody></table></div>`;
 }
 async function reports(own = false, page = 1) {
   const d = await api("/api/reports?" + query({ page }));
@@ -1113,13 +1113,26 @@ async function reportPage(id) {
     "submit",
   );
 }
+function itemTable(items) {
+  if (!items.length)
+    return empty(
+      "No matching items",
+      "Adjust the filters to see your monitored projects and issues.",
+    );
+  return `<div class="table-wrap"><table class="table"><thead><tr><th scope="col">Item / reference</th><th scope="col">Type</th><th scope="col">Sector</th><th scope="col">Location</th><th scope="col">Confirmed progress</th><th scope="col" class="cell-actions"><span class="sr-only">Actions</span></th></tr></thead><tbody>${items
+    .map(
+      (i) =>
+        `<tr><td><span class="reference">${esc(i.reference)}</span><strong class="table-title">${esc(i.title.replace(/^DEMO — /, ""))}</strong></td><td><span class="pill">${i.type === "PUBLIC_PROJECT" ? "Project" : "Issue"}</span>${i.provisional ? ' <span class="pill amber">Provisional</span>' : ""}</td><td>${esc(refs.sectors.find((s) => s.id === i.sectorId)?.label || "—")}</td><td>${esc(refs.lgas.find((l) => l.id === i.lgaId)?.name || "")}<span class="small subtle block">${esc(i.community || "")}</span></td><td>${badge(i.confirmedProgress)}</td><td class="cell-actions"><div class="row-actions"><a class="open-link" href="#/monitoring/items/${i.id}" aria-label="Open ${esc(i.title)}">${icon("arrow")}</a></div></td></tr>`,
+    )
+    .join("")}</tbody></table></div>`;
+}
 async function items() {
   const d = await api("/api/items?" + query());
   const withLocation = d.items.filter(
     (i) => i.coordinates?.latitude != null && i.coordinates?.longitude != null,
   );
   shell(
-    `${heading("TRACKED ITEMS", "Projects & service issues", "See all visits and updates for each project or service issue.")}<div class="item-filter-note">${filterBar()}</div><div class="location-summary">${icon("pin")}<div><strong>${withLocation.length} items with recorded coordinates · ${d.items.length - withLocation.length} without GPS</strong><p class="small subtle">Community and landmark descriptions remain available for every item. Coordinates are field observations, not official facility locations.</p></div></div>${withLocation.length?'<section class="card ov-card"><h2>Map of tracked items</h2><div id="overviewMap"></div></section>':""}<div class="item-grid">${d.items.map((i) => `<article class="card item-card"><div class="row space"><span class="eyebrow">${i.type === "PUBLIC_PROJECT" ? "PUBLIC PROJECT" : "SERVICE ISSUE"}</span>${i.provisional ? '<span class="pill amber">Provisional</span>' : ""}</div><span class="reference">${esc(i.reference)}</span><h2>${esc(i.title.replace(/^DEMO — /, ""))}</h2><p class="small subtle">${icon("pin")}${esc(refs.lgas.find((l) => l.id === i.lgaId)?.name || "")} · ${esc(i.community)}</p><div class="item-card-footer">${badge(i.confirmedProgress)}<a class="open-link" href="#/monitoring/items/${i.id}" aria-label="Open ${esc(i.title)}">${icon("arrow")}</a></div></article>`).join("") || empty("No matching items", "Adjust the filters to see your monitored projects and issues.")}</div>`,
+    `${heading("TRACKED ITEMS", "Projects & service issues", "See all visits and updates for each project or service issue.")}<div class="item-filter-note">${filterBar()}</div><div class="location-summary">${icon("pin")}<div><strong>${withLocation.length} items with recorded coordinates · ${d.items.length - withLocation.length} without GPS</strong><p class="small subtle">Community and landmark descriptions remain available for every item. Coordinates are field observations, not official facility locations.</p></div></div>${withLocation.length ? '<section class="card ov-card"><h2>Map of tracked items</h2><div id="overviewMap"></div></section>' : ""}<div class="section">${itemTable(d.items)}</div>`,
   );
   bindFilters();
   if (withLocation.length)

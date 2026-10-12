@@ -4739,6 +4739,15 @@ body[data-screen="audit"] .table {
 .row-actions {
   display: inline-flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 8px;
+  vertical-align: middle;
+}
+.table th.cell-actions,
+.table td.cell-actions {
+  text-align: right;
+  vertical-align: middle;
+  width: 104px;
+  min-width: 104px;
   white-space: nowrap;
 }
