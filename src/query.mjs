@@ -33,15 +33,19 @@ const projection = `r.data || jsonb_build_object('item',i.data,'revision',v.data
 export async function addAuthors(c, reports) {
   if (!reports.length) return reports;
   try {
+    await c.query("SAVEPOINT author_lookup");
     const rows = (
       await c.query(
         "select report_id, author_name from civic.report_authors($1::text[])",
         [reports.map((r) => r.id)],
       )
     ).rows;
+    await c.query("RELEASE SAVEPOINT author_lookup");
     const names = new Map(rows.map((x) => [x.report_id, x.author_name]));
     for (const r of reports) r.authorName = names.get(r.id) || null;
-  } catch {}
+  } catch {
+    await c.query("ROLLBACK TO SAVEPOINT author_lookup").catch(() => {});
+  }
   return reports;
 }
 export async function listReports(c, f, all = false) {

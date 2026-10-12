@@ -8,7 +8,10 @@ const bin = process.env.PG_BIN || "/usr/local/opt/postgresql@18/bin";
 fs.mkdirSync(base, { recursive: true, mode: 0o700 });
 fs.mkdirSync(sock, { recursive: true, mode: 0o700 });
 const run = (name, args) => {
-  const r = spawnSync(path.join(bin, name), args, { stdio: "inherit" });
+  const r = spawnSync(path.join(bin, name), args, {
+    stdio: "inherit",
+    env: { ...process.env, LC_ALL: "C" },
+  });
   if (r.status) process.exit(r.status);
 };
 if (process.argv[2] === "stop") {

@@ -138,8 +138,17 @@ small,
   background: #35302c;
 }
 .btn .icon {
-  width: 17px;
-  height: 17px;
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  transition: transform 0.2s cubic-bezier(0.2, 0.75, 0.25, 1);
+}
+.btn:hover .icon {
+  transform: translateX(3px);
+}
+.btn#previous:hover .icon,
+.btn:has(.icon:first-child:not(:only-child)):hover .icon {
+  transform: translateX(-3px);
 }
 .text-button {
   background: transparent;
@@ -157,14 +166,24 @@ small,
 .text-link {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
   color: var(--green);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 650;
-  min-height: 44px;
+  min-height: 36px;
+  text-decoration: none;
 }
 .text-link:hover {
   text-decoration: underline;
+}
+.text-link .icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  transition: transform 0.2s cubic-bezier(0.2, 0.75, 0.25, 1);
+}
+.text-link:hover .icon {
+  transform: translateX(3px);
 }
 .icon-button {
   display: grid;
@@ -816,18 +835,46 @@ select:focus {
   letter-spacing: 0.5px;
 }
 .open-link {
-  display: grid;
-  place-items: center;
-  min-height: 44px;
-  min-width: 44px;
-  color: var(--green);
-  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  min-height: 34px;
+  border-radius: 50%;
+  border: 1px solid #c8beb5;
+  background: #f7f4f0;
+  color: #3d3732;
+  text-decoration: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  padding: 0;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease;
 }
 .open-link:hover {
-  background: var(--light);
+  background: #ede6df;
+  border-color: #9f8c7d;
+  color: #1f1b18;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 .open-link .icon {
-  width: 17px;
+  width: 15px;
+  height: 15px;
+  display: block;
+  flex-shrink: 0;
+  transition: transform 0.18s ease;
+}
+.open-link:hover .icon {
+  transform: translateX(1.5px);
+}
+.open-link[download]:hover .icon {
+  transform: translateY(1.5px);
 }
 .pill {
   display: inline-block;
@@ -1528,12 +1575,29 @@ textarea::placeholder {
   font-size: 11px;
 }
 .back-link {
-  font-size: 11px;
-  min-height: 44px;
   display: inline-flex;
   align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #69615b;
+  text-decoration: none;
   margin-bottom: 15px;
-  color: var(--muted);
+  min-height: 36px;
+  transition: color 0.15s ease;
+}
+.back-link:hover {
+  color: #292725;
+  text-decoration: none;
+}
+.back-link .icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  transition: transform 0.2s cubic-bezier(0.2, 0.75, 0.25, 1);
+}
+.back-link:hover .icon {
+  transform: translateX(-3px);
 }
 .detail-layout {
   display: grid;
@@ -3649,8 +3713,7 @@ select {
   color: #594a40;
 }
 .back-link {
-  font: 11px monospace;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.2px;
 }
 .filter-panel {
   border: 0;
@@ -3720,15 +3783,7 @@ select {
 }
 .table .open-link,
 .item-card .open-link {
-  border: 1px solid #ac998c;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  background: transparent;
-  color: #3d3732;
-}
-.open-link:hover {
-  background: #d8d5d2;
+  /* Inherits centered circular open-link design */
 }
 .pagination {
   padding: 22px 0;
@@ -4606,15 +4661,11 @@ body[data-screen="audit"] .table {
 .signal-dots circle {
   animation: none;
 }
-.btn,
-.open-link {
+.btn {
   transition:
     background-color 0.25s,
     border-color 0.25s,
     transform 0.3s cubic-bezier(0.2, 0.75, 0.25, 1);
-}
-.open-link:hover {
-  transform: translateX(3px);
 }
 @media (prefers-reduced-motion: reduce) {
   .terrain-svg {
@@ -4685,4 +4736,9 @@ body[data-screen="audit"] .table {
 .ov-legend .dot.project { background: #1f5f3f; }
 .ov-legend .dot.issue { background: #ac3b35; }
 .ov-card { margin-bottom: 18px; }
-.row-actions{white-space:nowrap}.row-actions .open-link{display:inline-flex;margin-right:6px}
+.row-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
