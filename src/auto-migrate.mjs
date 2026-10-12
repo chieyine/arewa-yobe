@@ -29,6 +29,7 @@ export async function ensureDatabaseReady() {
         "006_aggregate_memory.sql",
         "007_trend_aggregation.sql",
         "008_evidence_blobs.sql",
+        "009_report_authors.sql",
       ]) {
         const version = file.replace(".sql", "");
         const res = await c.query(
@@ -36,9 +37,16 @@ export async function ensureDatabaseReady() {
           [version],
         );
         if (!res.rowCount) {
-          await c.query("BEGIN");
-          await c.query(sqlSchemas[file]);
-          await c.query("COMMIT");
+          try {
+            await c.query("BEGIN");
+            await c.query(sqlSchemas[file]);
+            await c.query("COMMIT");
+          } catch (err) {
+            await c.query("ROLLBACK").catch(() => {});
+            // Reporter names are an enhancement; never stop the demo for them.
+            if (file !== "009_report_authors.sql") throw err;
+            console.warn("Optional migration skipped:", err.message);
+          }
         }
       }
       if (process.env.APP_MODE === "evaluation" || !process.env.APP_MODE) {

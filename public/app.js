@@ -507,18 +507,30 @@ async function monitoring() {
   );
   bindFilters();
 }
+function scopeNote() {
+  const names = (me.lgaIds || [])
+    .map((id) => refs.lgas.find((l) => l.id === id)?.name)
+    .filter(Boolean)
+    .join(", ");
+  return me.role === "FOCAL_PERSON"
+    ? "You are seeing only the reports you submitted. Other reporters' reports are not visible to you."
+    : me.role === "MEAL"
+      ? `You are seeing reports from every reporter in your assigned LGAs${names ? " (" + names + ")" : ""}. Reports you wrote yourself are marked “You”.`
+      : "You are seeing reports from every reporter in all LGAs. Reports you wrote yourself are marked “You”.";
+}
 function reportTable(reports, own = false) {
+  const staff = me.role !== "FOCAL_PERSON";
   if (!reports.length)
     return empty(
       "No reports found",
       "Try a different filter or create your first field report.",
     );
-  return `<div class="table-wrap"><table class="table"><thead><tr><th scope="col">Report / item</th><th scope="col">Location</th><th scope="col">Visit date</th><th scope="col">Review status</th><th scope="col"><span class="sr-only">Open report</span></th></tr></thead><tbody>${reports.map((r) => `<tr><td><span class="reference">${esc(r.reference)}</span><strong class="table-title">${esc(r.item.title.replace(/^DEMO — /, ""))}</strong><span class="small subtle">${esc(refs.sectors.find((s) => s.id === r.item.sectorId)?.label || "")}</span></td><td>${esc(refs.lgas.find((l) => l.id === r.item.lgaId)?.name || "")}<span class="small subtle block">${esc(r.item.community)}</span></td><td class="nowrap">${date(r.revision.observedDate)}</td><td>${badge(r.reviewState)}</td><td><a class="open-link" href="#/${own ? "field" : "monitoring"}/reports/${r.id}" aria-label="Open ${esc(r.reference)}">${icon("arrow")}</a></td></tr>`).join("")}</tbody></table></div>`;
+  return `<div class="table-wrap"><table class="table"><thead><tr><th scope="col">Report / item</th><th scope="col">Location</th>${staff ? '<th scope="col">Reported by</th>' : ""}<th scope="col">Visit date</th><th scope="col">Review status</th><th scope="col"><span class="sr-only">Open report</span></th></tr></thead><tbody>${reports.map((r) => `<tr><td><span class="reference">${esc(r.reference)}</span><strong class="table-title">${esc(r.item.title.replace(/^DEMO — /, ""))}</strong><span class="small subtle">${esc(refs.sectors.find((s) => s.id === r.item.sectorId)?.label || "")}</span></td><td>${esc(refs.lgas.find((l) => l.id === r.item.lgaId)?.name || "")}<span class="small subtle block">${esc(r.item.community)}</span></td>${staff ? `<td>${r.authorId === me.id ? '<span class="pill">You</span>' : esc(r.authorName || "Another reporter")}</td>` : ""}<td class="nowrap">${date(r.revision.observedDate)}</td><td>${badge(r.reviewState)}</td><td class="row-actions"><a class="open-link" href="/api/reports/${esc(r.id)}/download" download aria-label="Download ${esc(r.reference)} as PDF" title="Download PDF">${icon("download")}</a> <a class="open-link" href="#/${own ? "field" : "monitoring"}/reports/${r.id}" aria-label="Open ${esc(r.reference)}">${icon("arrow")}</a></td></tr>`).join("")}</tbody></table></div>`;
 }
 async function reports(own = false, page = 1) {
   const d = await api("/api/reports?" + query({ page }));
   shell(
-    `${heading(own ? "YOUR FIELD RECORD" : "REPORTS & REVIEW", own ? "My reports" : "Reports & review", `${d.total} reports from the areas you can access.`, own ? '<a class="btn primary" href="#/field/reports/new">+ New report</a>' : downloadButtons())}${filterBar()}<div class="section">${reportTable(d.reports, own)}</div><div class="pagination"><span>${d.total ? `${(page - 1) * d.pageSize + 1}–${Math.min(page * d.pageSize, d.total)}` : "0"} of ${d.total} reports</span><div class="row"><button class="btn" id="previous" ${page <= 1 ? "disabled" : ""}>Previous</button><button class="btn" id="nextPage" ${page * d.pageSize >= d.total ? "disabled" : ""}>Next</button></div></div>`,
+    `${heading(own ? "YOUR FIELD RECORD" : "REPORTS & REVIEW", own ? "My reports" : "Reports & review", `${d.total} reports. ${scopeNote()}`, own ? '<a class="btn primary" href="#/field/reports/new">+ New report</a>' : downloadButtons())}${filterBar()}<div class="section">${reportTable(d.reports, own)}</div><div class="pagination"><span>${d.total ? `${(page - 1) * d.pageSize + 1}–${Math.min(page * d.pageSize, d.total)}` : "0"} of ${d.total} reports</span><div class="row"><button class="btn" id="previous" ${page <= 1 ? "disabled" : ""}>Previous</button><button class="btn" id="nextPage" ${page * d.pageSize >= d.total ? "disabled" : ""}>Next</button></div></div>`,
   );
   bindFilters();
   bind("#previous", () => reports(own, page - 1));
@@ -987,7 +999,7 @@ async function reportPage(id) {
       REJECTED: me.role === "ADMIN" ? ["NEEDS_CLARIFICATION"] : [],
     }[r.reviewState] || [];
   shell(
-    `<a class="back-link" href="#/${me.role === "FOCAL_PERSON" ? "field" : "monitoring"}/reports">← Back to reports</a>${heading(esc(r.reference), esc(r.item.title.replace(/^DEMO — /, "")), `${esc(r.item.community)} · ${date(r.revision.observedDate)} · Revision ${r.revision.revisionNumber}`, badge(r.reviewState))}<div class="receipt-strip">${icon("check")} Received by the workspace ${date(r.firstSubmittedAt)} <span>Server reference: ${esc(r.reference)}</span></div><div class="detail-layout"><article class="stack"><section class="card"><div class="eyebrow">THE FIELD OBSERVATION</div><h2>What the reporter saw</h2><p class="preserve-text observation-copy">${esc(r.revision.observation)}</p><dl class="detail-grid"><div><dt>Observed progress</dt><dd>${friendly(r.revision.observedProgress)}</dd></div><div><dt>Confirmed item progress</dt><dd>${friendly(r.item.confirmedProgress)}</dd></div><div><dt>Duty bearer</dt><dd>${esc(r.revision.stakeholder || "Not recorded")}</dd></div><div><dt>Suggested next action</dt><dd>${esc(r.revision.suggestedAction || "Not recorded")}</dd></div></dl>${r.revision.evidenceNote ? `<h3>Supporting note</h3><p>${esc(r.revision.evidenceNote)}</p>` : ""}<a class="text-link" href="#/monitoring/items/${r.item.id}">View the item’s full history ${icon("arrow")}</a></section><section class="card"><div class="eyebrow">PRIVATE EVIDENCE</div><h2>Supporting photographs <span class="count-label">${r.evidence.length}</span></h2>${r.evidence.length ? `<div class="evidence-grid">${r.evidence.map((e) => `<figure><a href="/evidence/${e.id}" target="_blank" rel="noopener"><img src="/evidence/${e.id}" alt="${esc(e.caption || "Supporting field photograph")}" loading="lazy"></a><figcaption>${esc(e.caption || "No caption")}<small>${esc(e.processing || "")}</small></figcaption></figure>`).join("")}</div>` : '<p class="subtle">No photo was attached to this revision.</p>'}</section><section class="card"><h2>Revision history</h2>${r.revisions.map((v) => `<details class="revision"><summary>Revision ${v.revisionNumber} <span>${date(v.submittedAt)}</span></summary><p class="preserve-text">${esc(v.observation)}</p></details>`).join("")}</section><section class="card"><h2>Decision history</h2><ol class="timeline">${r.history.map((h) => `<li><span class="timeline-dot"></span><strong>${stateLabel(h.to)}</strong><p>${esc(h.reason)}</p><small>${date(h.createdAt)} · revision ${esc(r.revisions.find((v) => v.id === h.revisionId)?.revisionNumber || "—")}</small></li>`).join("")}</ol></section></article><aside class="stack">${reviewer && allowed.length ? `<section class="card decision-panel"><div class="eyebrow">REVIEW THIS REVISION</div><h2>Record your decision.</h2><p class="small subtle">This applies only to revision ${r.revision.revisionNumber}.</p><div id="decisionError"></div><form id="decisionForm"><div class="field"><label for="decision">Decision</label><select id="decision">${allowed.map((s) => `<option value="${s}">${stateLabel(s)}</option>`).join("")}</select></div><div class="field"><label for="reason">Reason / clarification question</label><textarea id="reason" minlength="3" maxlength="2000" required></textarea></div><button class="btn primary full">Save decision</button></form></section>` : ""}${own && r.reviewState === "NEEDS_CLARIFICATION" ? `<section class="card decision-panel"><h2>Clarify your observation</h2><p class="small subtle">The previous revision is preserved. Update the observation and explain your response.</p><div id="responseError"></div><form id="responseForm"><div class="field"><label for="updatedObservation">Updated observation</label><textarea id="updatedObservation" minlength="20" maxlength="5000" required>${esc(r.revision.observation)}</textarea></div><div class="field"><label for="responseText">Your response to the reviewer</label><textarea id="responseText" required></textarea></div><button class="btn primary full">Respond and resubmit</button></form></section>` : ""}<section class="card"><h2>Conversation</h2><div class="messages">${r.messages.length ? r.messages.map((m) => `<div class="message ${m.visibility === "INTERNAL" ? "internal" : ""}"><span class="eyebrow">${m.visibility === "INTERNAL" ? "INTERNAL · REVIEW TEAM" : "SHARED WITH AUTHOR"}</span><p class="preserve-text">${esc(m.text)}</p><small>${date(m.createdAt)}</small></div>`).join("") : '<p class="subtle small">No messages yet.</p>'}</div>${own && ["APPROVED", "REJECTED", "VERIFIED"].includes(r.reviewState) ? '<button class="btn full" id="requestAmendment">Request an amendment</button>' : ""}<form id="messageForm"><div class="field"><label for="message">Add a message</label><textarea id="message" maxlength="2000" required></textarea></div>${reviewer ? '<label class="check-field"><input id="internal" type="checkbox"><span>Internal note · only the review team</span></label>' : ""}<button class="btn full">Add message</button></form></section></aside></div>`,
+    `<a class="back-link" href="#/${me.role === "FOCAL_PERSON" ? "field" : "monitoring"}/reports">← Back to reports</a>${heading(esc(r.reference), esc(r.item.title.replace(/^DEMO — /, "")), `${esc(r.item.community)} · ${date(r.revision.observedDate)} · Revision ${r.revision.revisionNumber}${r.authorName && me.role !== "FOCAL_PERSON" ? " · Reported by " + esc(own ? "you" : r.authorName) : ""}`, badge(r.reviewState) + `<a class="btn" href="/api/reports/${esc(r.id)}/download" download>${icon("download")} Download PDF</a>`)}<div class="receipt-strip">${icon("check")} Received by the workspace ${date(r.firstSubmittedAt)} <span>Server reference: ${esc(r.reference)}</span></div><div class="detail-layout"><article class="stack"><section class="card"><div class="eyebrow">THE FIELD OBSERVATION</div><h2>What the reporter saw</h2><p class="preserve-text observation-copy">${esc(r.revision.observation)}</p><dl class="detail-grid"><div><dt>Observed progress</dt><dd>${friendly(r.revision.observedProgress)}</dd></div><div><dt>Confirmed item progress</dt><dd>${friendly(r.item.confirmedProgress)}</dd></div><div><dt>Duty bearer</dt><dd>${esc(r.revision.stakeholder || "Not recorded")}</dd></div><div><dt>Suggested next action</dt><dd>${esc(r.revision.suggestedAction || "Not recorded")}</dd></div></dl>${r.revision.evidenceNote ? `<h3>Supporting note</h3><p>${esc(r.revision.evidenceNote)}</p>` : ""}<a class="text-link" href="#/monitoring/items/${r.item.id}">View the item’s full history ${icon("arrow")}</a></section><section class="card"><div class="eyebrow">PRIVATE EVIDENCE</div><h2>Supporting photographs <span class="count-label">${r.evidence.length}</span></h2>${r.evidence.length ? `<div class="evidence-grid">${r.evidence.map((e) => `<figure><a href="/evidence/${e.id}" target="_blank" rel="noopener"><img src="/evidence/${e.id}" alt="${esc(e.caption || "Supporting field photograph")}" loading="lazy"></a><figcaption>${esc(e.caption || "No caption")}<small>${esc(e.processing || "")}</small></figcaption></figure>`).join("")}</div>` : '<p class="subtle">No photo was attached to this revision.</p>'}</section><section class="card"><h2>Revision history</h2>${r.revisions.map((v) => `<details class="revision"><summary>Revision ${v.revisionNumber} <span>${date(v.submittedAt)}</span></summary><p class="preserve-text">${esc(v.observation)}</p></details>`).join("")}</section><section class="card"><h2>Decision history</h2><ol class="timeline">${r.history.map((h) => `<li><span class="timeline-dot"></span><strong>${stateLabel(h.to)}</strong><p>${esc(h.reason)}</p><small>${date(h.createdAt)} · revision ${esc(r.revisions.find((v) => v.id === h.revisionId)?.revisionNumber || "—")}</small></li>`).join("")}</ol></section></article><aside class="stack">${reviewer && allowed.length ? `<section class="card decision-panel"><div class="eyebrow">REVIEW THIS REVISION</div><h2>Record your decision.</h2><p class="small subtle">This applies only to revision ${r.revision.revisionNumber}.</p><div id="decisionError"></div><form id="decisionForm"><div class="field"><label for="decision">Decision</label><select id="decision">${allowed.map((s) => `<option value="${s}">${stateLabel(s)}</option>`).join("")}</select></div><div class="field"><label for="reason">Reason / clarification question</label><textarea id="reason" minlength="3" maxlength="2000" required></textarea></div><button class="btn primary full">Save decision</button></form></section>` : ""}${own && r.reviewState === "NEEDS_CLARIFICATION" ? `<section class="card decision-panel"><h2>Clarify your observation</h2><p class="small subtle">The previous revision is preserved. Update the observation and explain your response.</p><div id="responseError"></div><form id="responseForm"><div class="field"><label for="updatedObservation">Updated observation</label><textarea id="updatedObservation" minlength="20" maxlength="5000" required>${esc(r.revision.observation)}</textarea></div><div class="field"><label for="responseText">Your response to the reviewer</label><textarea id="responseText" required></textarea></div><button class="btn primary full">Respond and resubmit</button></form></section>` : ""}<section class="card"><h2>Conversation</h2><div class="messages">${r.messages.length ? r.messages.map((m) => `<div class="message ${m.visibility === "INTERNAL" ? "internal" : ""}"><span class="eyebrow">${m.visibility === "INTERNAL" ? "INTERNAL · REVIEW TEAM" : "SHARED WITH AUTHOR"}</span><p class="preserve-text">${esc(m.text)}</p><small>${date(m.createdAt)}</small></div>`).join("") : '<p class="subtle small">No messages yet.</p>'}</div>${own && ["APPROVED", "REJECTED", "VERIFIED"].includes(r.reviewState) ? '<button class="btn full" id="requestAmendment">Request an amendment</button>' : ""}<form id="messageForm"><div class="field"><label for="message">Add a message</label><textarea id="message" maxlength="2000" required></textarea></div>${reviewer ? '<label class="check-field"><input id="internal" type="checkbox"><span>Internal note · only the review team</span></label>' : ""}<button class="btn full">Add message</button></form></section></aside></div>`,
   );
   bind(
     "#decisionForm",
@@ -1106,9 +1118,15 @@ async function items() {
     (i) => i.coordinates?.latitude != null && i.coordinates?.longitude != null,
   );
   shell(
-    `${heading("TRACKED ITEMS", "Projects & service issues", "See all visits and updates for each project or service issue.")}<div class="item-filter-note">${filterBar()}</div><div class="location-summary">${icon("pin")}<div><strong>${withLocation.length} items with recorded coordinates · ${d.items.length - withLocation.length} without GPS</strong><p class="small subtle">Community and landmark descriptions remain available for every item. Coordinates are field observations, not official facility locations.</p></div></div><div class="item-grid">${d.items.map((i) => `<article class="card item-card"><div class="row space"><span class="eyebrow">${i.type === "PUBLIC_PROJECT" ? "PUBLIC PROJECT" : "SERVICE ISSUE"}</span>${i.provisional ? '<span class="pill amber">Createal</span>' : ""}</div><span class="reference">${esc(i.reference)}</span><h2>${esc(i.title.replace(/^DEMO — /, ""))}</h2><p class="small subtle">${icon("pin")}${esc(refs.lgas.find((l) => l.id === i.lgaId)?.name || "")} · ${esc(i.community)}</p><div class="item-card-footer">${badge(i.confirmedProgress)}<a class="open-link" href="#/monitoring/items/${i.id}" aria-label="Open ${esc(i.title)}">${icon("arrow")}</a></div></article>`).join("") || empty("No matching items", "Adjust the filters to see your monitored projects and issues.")}</div>`,
+    `${heading("TRACKED ITEMS", "Projects & service issues", "See all visits and updates for each project or service issue.")}<div class="item-filter-note">${filterBar()}</div><div class="location-summary">${icon("pin")}<div><strong>${withLocation.length} items with recorded coordinates · ${d.items.length - withLocation.length} without GPS</strong><p class="small subtle">Community and landmark descriptions remain available for every item. Coordinates are field observations, not official facility locations.</p></div></div>${withLocation.length?'<section class="card ov-card"><h2>Map of tracked items</h2><div id="overviewMap"></div></section>':""}<div class="item-grid">${d.items.map((i) => `<article class="card item-card"><div class="row space"><span class="eyebrow">${i.type === "PUBLIC_PROJECT" ? "PUBLIC PROJECT" : "SERVICE ISSUE"}</span>${i.provisional ? '<span class="pill amber">Provisional</span>' : ""}</div><span class="reference">${esc(i.reference)}</span><h2>${esc(i.title.replace(/^DEMO — /, ""))}</h2><p class="small subtle">${icon("pin")}${esc(refs.lgas.find((l) => l.id === i.lgaId)?.name || "")} · ${esc(i.community)}</p><div class="item-card-footer">${badge(i.confirmedProgress)}<a class="open-link" href="#/monitoring/items/${i.id}" aria-label="Open ${esc(i.title)}">${icon("arrow")}</a></div></article>`).join("") || empty("No matching items", "Adjust the filters to see your monitored projects and issues.")}</div>`,
   );
   bindFilters();
+  if (withLocation.length)
+    import("./map.js").then(({ showOverviewMap }) =>
+      showOverviewMap($("#overviewMap"), withLocation, (i) =>
+        [refs.lgas.find((l) => l.id === i.lgaId)?.name, i.community].filter(Boolean).join(", "),
+      ),
+    );
 }
 async function itemPage(id) {
   const d = await api("/api/items/" + id),
@@ -1245,17 +1263,24 @@ async function users() {
       }
     };
 }
+let auditNames = {};
 async function audit() {
-  const d = await api("/api/admin/audit");
+  const [d, u] = await Promise.all([
+    api("/api/admin/audit"),
+    api("/api/admin/users").catch(() => ({ users: [] })),
+  ]);
+  auditNames = Object.fromEntries(
+    u.users.map((x) => [x.id, `${x.displayName} (${roleLabel(x.role)})`]),
+  );
   shell(
-    `${heading("ACTIVITY LOG", "Activity log", "The latest 500 recorded actions. Submitted revisions and audit events cannot be edited by application roles.")}<div class="field"><label for="auditFilter">Find an action</label><input id="auditFilter" placeholder="For example: REVIEW or MANAGE_USER"></div><div id="auditRows">${auditRows(d.events)}</div>`,
+    `${heading("ACTIVITY LOG", "Activity log", "The latest 500 recorded actions. Submitted revisions and audit events cannot be edited by application roles.")}<div class="field"><label for="auditFilter">Find an action</label><input id="auditFilter" placeholder="Action or person, for example: REVIEW or a name"></div><div id="auditRows">${auditRows(d.events)}</div>`,
   );
   bind(
     "#auditFilter",
     () => {
       $("#auditRows").innerHTML = auditRows(
         d.events.filter((e) =>
-          (e.action || "")
+          ((e.action || "") + " " + (auditNames[e.actorId] || ""))
             .toLowerCase()
             .includes($("#auditFilter").value.toLowerCase()),
         ),
@@ -1265,7 +1290,7 @@ async function audit() {
   );
 }
 function auditRows(rows) {
-  return `<div class="table-wrap"><table class="table"><thead><tr><th>Action</th><th>Record</th><th>Actor</th><th>Time · WAT</th></tr></thead><tbody>${rows.map((e) => `<tr><td>${esc(friendly(e.action))}</td><td class="mono">${esc(e.entityId || "—")}</td><td class="mono">${esc(e.actorId || "—")}</td><td>${new Date(e.createdAt).toLocaleString("en-GB", { timeZone: "Africa/Lagos" })}</td></tr>`).join("")}</tbody></table></div>`;
+  return `<div class="table-wrap"><table class="table"><thead><tr><th>Action</th><th>Record</th><th>Actor</th><th>Time · WAT</th></tr></thead><tbody>${rows.map((e) => `<tr><td>${esc(friendly(e.action))}</td><td class="mono">${esc(e.entityId || "—")}</td><td>${esc(auditNames[e.actorId] || e.actorId || "—")}</td><td>${new Date(e.createdAt).toLocaleString("en-GB", { timeZone: "Africa/Lagos" })}</td></tr>`).join("")}</tbody></table></div>`;
 }
 async function referenceData() {
   shell(
@@ -1351,7 +1376,7 @@ function help() {
       [
         "06",
         "For the evaluator",
-        "Try submitting a sample field report, review it with another account, then add a follow-up visit. Check the dashboard and download a summary. Use sample photos without personal details.",
+        "Try submitting a sample field report, review it with another account, then add a follow-up visit. Check the dashboard, download a summary, and download a single report as a PDF. Use sample photos without personal details.",
       ],
     ]
       .map(
@@ -1362,6 +1387,22 @@ function help() {
         "",
       )}</div><div class="guidance-panel"><h2>Personal information</h2><p>Do not include political preferences, identity numbers or personal information that is not needed for the report. Report a suspected incident to your designated administrator. Your administrator can advise you on the reporting process.</p></div>`,
   );
+}
+// The bell used to stay empty because the unread count was never loaded.
+async function refreshUnread() {
+  try {
+    const d = await api("/api/notifications");
+    unread = d.notifications.filter((n) => !n.read).length;
+    const bell = document.querySelector('.topbar a[href="#/notifications"]');
+    if (!bell) return;
+    bell.setAttribute(
+      "aria-label",
+      "Notifications" + (unread ? " (" + unread + " unread)" : ""),
+    );
+    bell.querySelector(".notification-dot")?.remove();
+    if (unread)
+      bell.insertAdjacentHTML("beforeend", '<span class="notification-dot"></span>');
+  } catch {}
 }
 async function render() {
   route = location.hash.slice(1) || "/";
@@ -1415,7 +1456,10 @@ async function render() {
           "Choose a page from your workspace navigation.",
         ),
       );
-    if (!offline) retryQueued();
+    if (!offline) {
+      retryQueued();
+      refreshUnread();
+    }
   } catch (e) {
     if (e.status === 401) {
       me = null;

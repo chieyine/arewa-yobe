@@ -1,10 +1,11 @@
-const CACHE = "arewa-shell-v13";
+const CACHE = "arewa-shell-v14";
 const SHELL = [
   "/",
   "/index.html",
   "/styles.css",
   "/app.js",
   "/offline.js",
+  "/map.js",
   "/manifest.webmanifest",
 ];
 self.addEventListener("install", (event) => {
@@ -38,7 +39,7 @@ self.addEventListener("fetch", (event) => {
     );
     return;
   }
-  if (SHELL.includes(u.pathname))
+  if (SHELL.includes(u.pathname) || u.pathname === "/icon-192.png")
     event.respondWith(
       fetch(event.request).catch(() => caches.match(u.pathname)),
     );

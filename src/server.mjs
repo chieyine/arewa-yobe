@@ -3,6 +3,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { randomUUID, randomBytes, createHash } from "node:crypto";
+import { gzipSync } from "node:zlib";
 import {
   withDb,
   rpc,
@@ -12,7 +13,7 @@ import {
   localEvaluation,
 } from "./db.mjs";
 import { filters, listReports, reportDetail, dashboard } from "./query.mjs";
-import { csvExport, xlsxExport, pdfExport } from "./exports.mjs";
+import { csvExport, xlsxExport, pdfExport, reportPdf } from "./exports.mjs";
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
 const publicDir = path.join(root, "public");
 const evidenceDir = path.resolve(
@@ -341,7 +342,18 @@ async function api(req, res, url) {
         return listReports(c, filters(url.searchParams));
       if (p === "/api/reports" && req.method === "POST")
         return rpc(c, "submit_report", [await body(req)]);
-      let m = p.match(/^\/api\/reports\/([^/]+)$/);
+      let m = p.match(/^\/api\/reports\/([^/]+)\/download$/);
+      if (m && req.method === "GET") {
+        // Any role may download a report it is already allowed to read (focal persons: their own).
+        const r = await reportDetail(c, m[1]);
+        const data = await reportPdf(r, await refs(c), user.displayName);
+        await c.query("select civic.record_export($1,$2)", [
+          "REPORT_PDF",
+          JSON.stringify({ reportId: m[1] }),
+        ]);
+        return { download: data, format: "pdf", name: r.reference };
+      }
+      m = p.match(/^\/api\/reports\/([^/]+)$/);
       if (m && req.method === "GET") return reportDetail(c, m[1]);
       m = p.match(/^\/api\/reports\/([^/]+)\/amendment-request$/);
       if (m && req.method === "POST") {
@@ -573,7 +585,7 @@ async function api(req, res, url) {
       };
       res.writeHead(200, {
         "content-type": types[result.format],
-        "content-disposition": `attachment; filename="arewa-evaluation.${result.format}"`,
+        "content-disposition": `attachment; filename="${(result.name ? String(result.name).replace(/[^A-Za-z0-9._-]/g, "_") : "arewa-evaluation")}.${result.format}"`,
         "cache-control": "private, no-store",
       });
       return res.end(result.download);
@@ -686,10 +698,24 @@ export async function handleRequest(req, res) {
       } catch {}
     }
     if (!data) throw Error("NOT_FOUND");
-    res.writeHead(200, {
+    // Low-bandwidth delivery: validate with an ETag (304 sends no body) and gzip text assets.
+    const etag = `"${createHash("sha1").update(data).digest("base64url").slice(0, 22)}"`;
+    const headers = {
       "content-type": mime[path.extname(file)] || "text/html; charset=utf-8",
-      "cache-control": file === "sw.js" ? "no-cache" : "no-cache",
-    });
+      "cache-control": "no-cache",
+      etag,
+      vary: "accept-encoding",
+    };
+    if (req.headers["if-none-match"] === etag) {
+      res.writeHead(304, headers);
+      return res.end();
+    }
+    const text = /\.(js|css|html|svg|webmanifest|json)$/.test(file) || file === "index.html";
+    if (text && data.length > 1024 && /\bgzip\b/.test(req.headers["accept-encoding"] || "")) {
+      headers["content-encoding"] = "gzip";
+      data = gzipSync(data);
+    }
+    res.writeHead(200, headers);
     return res.end(data);
   } catch {
     send(res, 404, {

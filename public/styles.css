@@ -4673,3 +4673,16 @@ body[data-screen="audit"] .table {
   outline: 2px solid #785744;
   outline-offset: 2px;
 }
+
+.overview-map svg { width: 100%; max-width: 560px; height: auto; max-height: 70vh; display: block; border: 1px solid var(--line); }
+.ov-bg { fill: #e7e5e3; }
+.ov-pin circle { stroke: #fff; stroke-width: 2; cursor: pointer; }
+.ov-pin.project circle { fill: #1f5f3f; }
+.ov-pin.issue circle { fill: #ac3b35; }
+.ov-pin:focus circle, .ov-pin:hover circle { stroke: #252422; stroke-width: 3; }
+.ov-legend { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin-top: 10px; }
+.ov-legend .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
+.ov-legend .dot.project { background: #1f5f3f; }
+.ov-legend .dot.issue { background: #ac3b35; }
+.ov-card { margin-bottom: 18px; }
+.row-actions{white-space:nowrap}.row-actions .open-link{display:inline-flex;margin-right:6px}

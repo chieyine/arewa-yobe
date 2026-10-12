@@ -28,6 +28,22 @@ export function filters(q) {
   };
 }
 const projection = `r.data || jsonb_build_object('item',i.data,'revision',v.data,'evidenceCount',(select count(*) from civic.revision_evidence re where re.revision_id=v.id))`;
+// Adds the reporter's name to reports the actor may already read. Optional: if the
+// lookup is unavailable the lists still work, just without names.
+export async function addAuthors(c, reports) {
+  if (!reports.length) return reports;
+  try {
+    const rows = (
+      await c.query(
+        "select report_id, author_name from civic.report_authors($1::text[])",
+        [reports.map((r) => r.id)],
+      )
+    ).rows;
+    const names = new Map(rows.map((x) => [x.report_id, x.author_name]));
+    for (const r of reports) r.authorName = names.get(r.id) || null;
+  } catch {}
+  return reports;
+}
 export async function listReports(c, f, all = false) {
   const total = Number(
     (await c.query("select count(*) from civic.report_population($1)", [f]))
@@ -39,7 +55,10 @@ export async function listReports(c, f, all = false) {
     [f],
   );
   return {
-    reports: result.rows.map((x) => x.data),
+    reports: await addAuthors(
+      c,
+      result.rows.map((x) => x.data),
+    ),
     total,
     page: f.page,
     pageSize: f.pageSize,
@@ -77,6 +96,7 @@ export async function reportDetail(c, id) {
     ],
   ])
     r[field] = (await c.query(sql, params)).rows.map((x) => x.data);
+  await addAuthors(c, [r]);
   return r;
 }
 export async function dashboard(c, f) {
