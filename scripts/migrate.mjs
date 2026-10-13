@@ -35,6 +35,7 @@ try {
     "007_trend_aggregation.sql",
     "008_evidence_blobs.sql",
     "009_report_authors.sql",
+    "010_enforce_rls.sql",
   ]) {
     const version = file.replace(".sql", "");
     if (

@@ -409,7 +409,7 @@ async function api(req, res, url) {
           reports,
           actions: (
             await c.query(
-              "select data from civic.actions where item_id=$1 order by data->>'createdAt' desc",
+              "select data from civic.actions where item_id=$1 and ((civic.actor()).role in ('ADMIN','MEAL') or data->>'visibility'='AUTHOR') order by data->>'createdAt' desc",
               [m[1]],
             )
           ).rows.map((x) => x.data),

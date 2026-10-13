@@ -80,7 +80,7 @@ export async function reportDetail(c, id) {
   for (const [field, sql, params] of [
     [
       "messages",
-      "select data from civic.messages where report_id=$1 order by data->>'createdAt'",
+      "select data from civic.messages where report_id=$1 and (data->>'visibility'='AUTHOR' or coalesce((civic.actor()).role,'') in ('MEAL','ADMIN')) order by data->>'createdAt'",
       [id],
     ],
     [
@@ -100,6 +100,10 @@ export async function reportDetail(c, id) {
     ],
   ])
     r[field] = (await c.query(sql, params)).rows.map((x) => x.data);
+  const actorRole = (await c.query("select (civic.actor()).role as role")).rows[0]?.role;
+  if (actorRole === "FOCAL_PERSON") {
+    r.messages = (r.messages || []).filter((m) => m.visibility === "AUTHOR");
+  }
   await addAuthors(c, [r]);
   return r;
 }

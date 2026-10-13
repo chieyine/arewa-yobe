@@ -988,6 +988,9 @@ async function reportPage(id) {
   const r = await api("/api/reports/" + id),
     own = r.authorId === me.id,
     reviewer = !own && me.role !== "FOCAL_PERSON";
+  if (me.role === "FOCAL_PERSON") {
+    r.messages = (r.messages || []).filter((m) => m.visibility === "AUTHOR");
+  }
   const allowed =
     {
       SUBMITTED: ["IN_REVIEW"],
